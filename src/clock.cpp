@@ -9,9 +9,8 @@
 
 namespace {
 
-// Twee soorten klokchip, automatisch gevonden: een losse DS3231-module, of de PCF85063 die op de
-// Waveshare-print zit. Beide bewaren UTC.
-constexpr uint8_t DS3231 = 0x68, PCF85063 = 0x51;
+// Klokchip: de PCF85063 op de Waveshare-print. Bewaart UTC.
+constexpr uint8_t PCF85063 = 0x51;
 uint8_t rtcAddr = 0;  // 0 = geen klokchip
 constexpr uint32_t MIN_VALID = 1735689600;  // 2025-01-01: alles daarvoor is "niet ingesteld"
 bool rtcPresent = false, rtcLost = false, valid = false;
@@ -91,39 +90,25 @@ void clock_begin() {
 
   rtcAddr = 0;
   valid = rtcLost = false;
-  for (uint8_t a : {DS3231, PCF85063}) {  // een losse DS3231 gaat voor (nauwkeuriger)
-    Wire.beginTransmission(a);
-    if (Wire.endTransmission() == 0) {
-      rtcAddr = a;
-      break;
-    }
-  }
+  Wire.beginTransmission(PCF85063);
+  if (Wire.endTransmission() == 0) rtcAddr = PCF85063;
   rtcPresent = rtcAddr != 0;
   if (!rtcPresent) {
     log_line("[klok] geen RTC gevonden");
     return;
   }
-  // Tijdregisters: sec, min, uur, dag, maand, jaar (BCD). De volgorde verschilt per chip.
+  // Tijdregisters (BCD): seconden, minuten, uren, dagen, weekdag, maanden, jaren
   uint8_t r[7];
-  int sec, minute, hour, day, month, year;
-  if (rtcAddr == DS3231) {
-    uint8_t status;
-    if (!rtcRead(0x00, r, 7) || !rtcRead(0x0F, &status, 1)) return;
-    rtcLost = status & 0x80;  // OSF: oscillator heeft stilgestaan
-    sec = bcd2dec(r[0] & 0x7F), minute = bcd2dec(r[1] & 0x7F), hour = bcd2dec(r[2] & 0x3F);
-    day = bcd2dec(r[4] & 0x3F), month = bcd2dec(r[5] & 0x1F), year = 2000 + bcd2dec(r[6]);
-  } else {
-    if (!rtcRead(0x04, r, 7)) return;  // seconden, minuten, uren, dagen, weekdag, maanden, jaren
-    rtcLost = r[0] & 0x80;             // OS: oscillator heeft stilgestaan
-    sec = bcd2dec(r[0] & 0x7F), minute = bcd2dec(r[1] & 0x7F), hour = bcd2dec(r[2] & 0x3F);
-    day = bcd2dec(r[3] & 0x3F), month = bcd2dec(r[5] & 0x1F), year = 2000 + bcd2dec(r[6]);
-  }
+  if (!rtcRead(0x04, r, 7)) return;
+  rtcLost = r[0] & 0x80;  // OS: oscillator heeft stilgestaan
+  int sec = bcd2dec(r[0] & 0x7F), minute = bcd2dec(r[1] & 0x7F), hour = bcd2dec(r[2] & 0x3F);
+  int day = bcd2dec(r[3] & 0x3F), month = bcd2dec(r[5] & 0x1F), year = 2000 + bcd2dec(r[6]);
   uint32_t epoch = daysFromCivil(year, month, day) * 86400UL + hour * 3600UL + minute * 60UL + sec;
   if (!rtcLost && epoch >= MIN_VALID) {
     setSystemTime(epoch);
     valid = true;
   }
-  logf("[klok] %s gevonden, tijd %s\n", rtcAddr == DS3231 ? "DS3231" : "PCF85063", valid ? "geldig" : "niet ingesteld");
+  logf("[klok] PCF85063 gevonden, tijd %s\n", valid ? "geldig" : "niet ingesteld");
 }
 
 bool clock_valid() { return valid; }
@@ -159,24 +144,15 @@ void clock_set_utc(uint32_t epoch) {
   time_t t = epoch;
   struct tm u;
   gmtime_r(&t, &u);
-  if (rtcAddr == DS3231) {
-    uint8_t r[7] = {dec2bcd(u.tm_sec),  dec2bcd(u.tm_min),     dec2bcd(u.tm_hour),       (uint8_t)(u.tm_wday + 1),
-                    dec2bcd(u.tm_mday), dec2bcd(u.tm_mon + 1), dec2bcd(u.tm_year - 100)};
-    rtcWrite(0x00, r, 7);
-    uint8_t ctrl = 0x1C, status = 0x00;  // oscillator aan op batterij, OSF wissen
-    rtcWrite(0x0E, &ctrl, 1);
-    rtcWrite(0x0F, &status, 1);
-  } else {
-    uint8_t c1;
-    if (rtcRead(0x00, &c1, 1) && (c1 & 0x20)) {  // STOP-bit: klok stond stil
-      c1 &= ~0x20;
-      rtcWrite(0x00, &c1, 1);
-    }
-    // Seconden met OS-bit 0: dat wist de melding "oscillator heeft stilgestaan"
-    uint8_t r[7] = {dec2bcd(u.tm_sec),  dec2bcd(u.tm_min),         dec2bcd(u.tm_hour),     dec2bcd(u.tm_mday),
-                    (uint8_t)u.tm_wday, dec2bcd(u.tm_mon + 1), dec2bcd(u.tm_year - 100)};
-    rtcWrite(0x04, r, 7);
+  uint8_t c1;
+  if (rtcRead(0x00, &c1, 1) && (c1 & 0x20)) {  // STOP-bit: klok stond stil
+    c1 &= ~0x20;
+    rtcWrite(0x00, &c1, 1);
   }
+  // Seconden met OS-bit 0: dat wist de melding "oscillator heeft stilgestaan"
+  uint8_t r[7] = {dec2bcd(u.tm_sec),  dec2bcd(u.tm_min),     dec2bcd(u.tm_hour),     dec2bcd(u.tm_mday),
+                  (uint8_t)u.tm_wday, dec2bcd(u.tm_mon + 1), dec2bcd(u.tm_year - 100)};
+  rtcWrite(0x04, r, 7);
   rtcLost = false;
 }
 

@@ -4,12 +4,7 @@
 #define LCD_WIDTH 480
 #define LCD_HEIGHT 480
 
-#if defined(BOARD_GUITION_4848) || defined(BOARD_T_PANEL_S3)
-#error "Bosun ondersteunt alleen de Waveshare ESP32-S3-Touch-LCD-4 (de Guition en de LilyGO T-Panel S3 niet meer)."
-#endif
-
 // Waveshare ESP32-S3-Touch-LCD-4 (bron: github.com/waveshareteam/ESP32-S3-Touch-LCD-4 en het V4.0-schema)
-#define BOARD_WAVESHARE_4 1
 #define BOARD_NAME "WAVESHARE_4"
 
 // RGB-paneel (ST7701, type1-init) en 3-draads SPI voor de init

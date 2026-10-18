@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <time.h>
 
-// Klok: DS3231- of PCF85063-RTC op I2C (automatisch gevonden) + systeemtijd van de ESP32.
+// Klok: de PCF85063-RTC op het board (I2C) + systeemtijd van de ESP32.
 // De RTC bewaart UTC; tonen gebeurt in Nederlandse tijd (zomer-/wintertijd automatisch).
 void clock_begin();          // na Wire.begin()
 bool clock_valid();          // tijd bekend?
