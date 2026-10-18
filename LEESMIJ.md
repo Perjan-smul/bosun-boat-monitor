@@ -512,6 +512,11 @@ instellingen staan. Op dezelfde pagina staan de updatebestanden (`.bin`) om via 
 De pagina staat in `web/` en komt via `.github/workflows/installer.yml` op GitHub Pages; die bouwt bij elke push
 naar `main` de firmware voor beide boards. Bij een tag `v…` komen de updatebestanden ook bij een release op GitHub.
 
+**De installatiepagina zelf testen, zonder hem openbaar te maken:** elke run maakt de complete pagina ook als download.
+Open de run onder *Actions*, download het artifact **bosun-installer**, pak het uit, start in die map
+`python3 -m http.server 8000` en open http://localhost:8000 in Chrome of Edge. De pagina werkt dan precies als online
+(browsers staan USB-toegang toe op `localhost`). GitHub Pages wordt pas gebruikt als de repository openbaar is.
+
 ## Bouwen en flashen
 
 Met [PlatformIO](https://platformio.org/) (VS Code-extensie of CLI):

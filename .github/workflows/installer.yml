@@ -1,4 +1,5 @@
-# Bouwt de firmware voor beide boards en zet de installatiepagina (web/) op GitHub Pages.
+# Bouwt de firmware voor beide boards en maakt de installatiepagina (web/): als download (artifact
+# bosun-installer) en, bij een openbare repository, op GitHub Pages.
 # Bij een tag v* komen de updatebestanden ook bij een release op GitHub.
 name: Firmware and web installer
 
@@ -50,12 +51,9 @@ jobs:
           name: firmware-${{ matrix.env }}
           path: firmware/
 
-  pages:
+  site:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -65,10 +63,25 @@ jobs:
           path: web/firmware
       - name: Manifests
         run: python3 scripts/web_manifest.py
-      - uses: actions/configure-pages@v5
+      # De complete installatiepagina als download: om zelf te testen (python3 -m http.server in die map)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bosun-installer
+          path: web/
       - uses: actions/upload-pages-artifact@v3
+        if: ${{ !github.event.repository.private }}
         with:
           path: web
+
+  # Alleen bij een openbare repository: GitHub Pages (Settings -> Pages -> Source: GitHub Actions)
+  pages:
+    if: ${{ !github.event.repository.private }}
+    needs: site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v4
 

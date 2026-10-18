@@ -512,6 +512,11 @@ The same page has the update files (`.bin`) for updating over WiFi.
 The page lives in `web/` and is published to GitHub Pages by `.github/workflows/installer.yml`, which builds the
 firmware for both boards on every push to `main`. A tag `v…` also puts the update files on a GitHub release.
 
+**Testing the installer privately:** every run also produces the complete page as a download. Open the run under
+*Actions*, download the artifact **bosun-installer**, unzip it, run `python3 -m http.server 8000` in that folder and open
+http://localhost:8000 in Chrome or Edge. The page then works exactly as online (browsers allow USB access on `localhost`).
+GitHub Pages is only used once the repository is public.
+
 ## Building and flashing
 
 With [PlatformIO](https://platformio.org/) (VS Code extension or CLI):
