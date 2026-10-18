@@ -21,25 +21,7 @@ board, and all other sensors are wireless via Bluetooth.
 
 ## Parts
 
-Everything you need, with a search term for the web shop and an indicative price (October 2026). The full order list
-with totals: [PARTS.md](PARTS.md) (Dutch: [BESTELLIJST.md](BESTELLIJST.md)).
-
-| Part | Qty | Needed | Where it goes | Search term | Price (€) |
-|---|---|---|---|---|---|
-| **Waveshare ESP32-S3-Touch-LCD-4**, touch version (not the 4B) | 1 | yes | the screen; CAN, clock, buzzer and micro SD are on it | Waveshare ESP32-S3-Touch-LCD-4 | 35–55 |
-| Rechargeable RTC cell ML2032 or ML2020 with JST SH plug (see *RTC* below) | 1 | **strongly recommended** | *RTC* connector; keeps the clock running without power | Raspberry Pi 5 RTC battery ML2032 | 5–8 |
-| Fuse 1 A with holder | 1 | yes | in the plus wire, close to the battery or distribution panel | inline fuse holder 1A blade | 3–6 |
-| Wire 1 mm² (red and black), heat-shrink | 1 set | yes | power | 1 mm² wire red black | 5–12 |
-| **Wire ferrules 0.25–1.5 mm² with crimp tool** (set, with a few twin ferrules 2 × 0.5 mm²) | 1 | yes | on every wire in the screw terminal, see below | ferrule crimping tool kit | 20–30 |
-| NMEA 2000 drop cable, M12 female, one open end | 1 | yes | from the bus to the board's CAN terminal | NMEA 2000 drop cable M12 female | 15–30 |
-| NMEA 2000 T-piece | 1 | sometimes | only if the bus has no free connection | NMEA 2000 T-piece | 10–20 |
-| USB-C data cable | 1 | yes | first firmware and serial log | USB-C data cable | 3–8 |
-| **DFRobot Gravity BME280 (SEN0236)** | 1 | optional | barometer, on the I2C block (pins 7–10); locking plug, no soldering | DFRobot SEN0236 | 15–20 |
-| Micro SD card, FAT32, 8–32 GB | 1 | optional | readings, log and backups | micro SD 16GB | 5–10 |
-| 3D-printed enclosure (PETG or ASA) | 1 | optional | surface or flush mount, see [`enclosure/`](enclosure/) | PETG filament | 0–5 |
-
-Bluetooth sensors (Victron, Mopeka, RuuviTag, ThermoBeacon, Xiaomi) are listed in
-[COMPATIBILITY.md](COMPATIBILITY.md).
+What to buy, with search terms and prices: [PARTS.md](PARTS.md) (Dutch: [BESTELLIJST.md](BESTELLIJST.md)).
 
 **Tools:** multimeter, small flat screwdriver (2–2.5 mm) for the screw terminal, wire stripper, crimp tool for
 ferrules, USB-C data cable and a laptop for the first firmware. No soldering needed.
