@@ -34,7 +34,9 @@ R_OPEN = 1.5         # afronding van de beeldopening
 PLATE_T = 2.4        # achterplaat
 FLANGE = 10.0        # rand rondom bij inbouw
 FLANGE_T = 4.0
-CABLE_D = 10.0       # kabeldoorvoer in de achterplaat
+CABLE_W = 64.0       # grote kabelopening in de achterplaat: de doorvoer in de wand hoeft niet precies
+CABLE_H = 38.0       # mee te vallen (handig bij een bestaand gat van een oud scherm)
+CABLE_Y = -12.0      # midden van de opening (+ = omhoog)
 SCREW_PILOT = 2.5    # M3 zelftappend in de bussen
 SCREW_HOLE = 3.4     # M3 door de achterplaat
 
@@ -90,14 +92,16 @@ def back_plate(depth, keyholes=True):
          .edges("|Z").fillet(BOARD_R + CLEAR + RECESS - 0.15).faces(">Z").edges().fillet(0.8))
     pts = [(x, y) for x, y in BOSSES]
     p = p.faces(">Z").workplane().pushPoints(pts).cskHole(SCREW_HOLE, 6.4, 90)
-    p = p.faces(">Z").workplane().center(0, -h / 4).hole(CABLE_D)
+    hole = (cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(0, CABLE_Y).rect(CABLE_W, CABLE_H)
+            .extrude(PLATE_T + 2).edges("|Z").fillet(8.0))
+    p = p.cut(hole)
     if keyholes:
         for x in (-30, 30):
             key = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 22).circle(4.2).extrude(PLATE_T + 2)
             slot = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 26).slot2D(12, 4.4, 90).extrude(PLATE_T + 2)
             p = p.cut(key).cut(slot)
     # Naam in de achterkant gegraveerd
-    txt = (cq.Workplane("XY").workplane(offset=depth - 0.6).center(0, -h / 4 - 16)
+    txt = (cq.Workplane("XY").workplane(offset=depth - 0.6).center(0, CABLE_Y - CABLE_H / 2 - 9)
            .text("BOSUN", 7, 1, kind="regular", halign="center", valign="center"))
     p = p.cut(txt)
     return p
