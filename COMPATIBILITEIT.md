@@ -92,10 +92,24 @@ De oudere Mopeka *Standard* (niet-Pro) werkt niet.
 | SwitchBot Meter | eigen formaat, nog geen decoder |
 | BTHome **versleuteld** | sleutel wordt niet ondersteund; zet de versleuteling uit |
 | Ruuvi Air (dataformaat 6) | nieuwer formaat, nog geen decoder |
-| AIS, Bluetooth-dieptemeters, Bluetooth-accu's van andere merken | niet ondersteund |
+| AIS, Bluetooth-dieptemeters | niet ondersteund |
 
-Een sensor erbij laten maken? Open een issue met het merk, het type en de app. Met een decoder uit
-Home Assistant (*Bluetooth-Devices* op GitHub) is dat meestal weinig werk.
+### Op verzoek: komt erbij als iemand kan testen
+
+Deze kunnen erbij, maar alleen samen met iemand die het apparaat heeft en een testversie wil proberen (zonder de
+hardware kan het niet getest worden). Heb je er een? **[Vraag het hier aan](https://github.com/Perjan-smul/bosun-boat-monitor/issues/new?template=device-request.yml)** en vink aan dat je kunt testen.
+
+| Apparaat | Wat Bosun zou tonen | Opmerking |
+|---|---|---|
+| **LiFePO4-accu's met een eigen BMS en Bluetooth-app**: JBD / Xiaoxiang (ook Overkill Solar en veel merkaccu's), JK BMS, Daly, LiTime / Ampere Time | SoC, spanning, stroom, vermogen, laagste en hoogste celspanning, temperatuur, laad-/ontlaadschakelaar, BMS-alarmen; net als een accumonitor, met dezelfde meldingen | Bosun moet verbinding maken met het BMS (het roept niets rond). Zolang Bosun verbonden is, kan de telefoon-app meestal niet verbinden; Bosun zou daarom elke 10–30 s kort verbinden. JBD is het eenvoudigst en komt het meest voor |
+| Calypso ultrasone windmeter (draagbaar, Bluetooth) | windsnelheid en -richting | verbinding nodig, zoals bij het BMS |
+| Govee-, Inkbird-, SwitchBot-thermometers | temperatuur, vocht | roepen rond; decoders bestaan in Home Assistant |
+| Ruuvi Air | luchtkwaliteit | nieuwer dataformaat |
+| Renogy- en Epever-laadregelaars | PV-vermogen, laadfase, opbrengst | via RS485 (het board heeft RS485 op de klem) |
+
+Iets anders? Gebruik hetzelfde formulier: merk, type, de app die je gebruikt en, als je die kent, een open-sourceproject
+dat het al uitleest. Met een decoder uit Home Assistant (*Bluetooth-Devices* op GitHub) of ESPHome is dat meestal
+weinig werk.
 
 ## NMEA 2000
 
@@ -151,7 +165,7 @@ NMEA 2000. Bosun gebruikt daarvan alleen de GPS-gegevens; AIS niet.
 |---|---|---|
 | Victron | Bluetooth (Instant Readout), en VE.Can (NMEA 2000-compatibel) via een GX | ja, beide |
 | Mastervolt | **MasterBus**: eigen systeem, géén NMEA 2000 | alleen via de Mastervolt-omzetter naar NMEA 2000 |
-| Accu's met eigen app (LiTime, JK, Daly, ...) | eigen Bluetooth met verbinding | nee |
+| Accu's met eigen app (JBD, JK, Daly, LiTime, ...) | eigen Bluetooth met verbinding | op verzoek, zie *Op verzoek* hierboven |
 
 **Motoren**
 

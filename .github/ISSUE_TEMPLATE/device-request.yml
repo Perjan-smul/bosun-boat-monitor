@@ -1,0 +1,55 @@
+name: Device request / Apparaat aanvragen
+description: Ask for support for a sensor, BMS or instrument, and offer to test it. / Vraag ondersteuning aan voor een sensor, BMS of instrument, en bied aan om te testen.
+title: "Device request: <brand> <model>"
+labels: ["device request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Devices are added when someone can test them on real hardware. Thank you for helping!
+        Apparaten worden toegevoegd als iemand ze op echte hardware kan testen. Bedankt voor je hulp!
+
+        Check [COMPATIBILITY.md](../blob/main/COMPATIBILITY.md) first: maybe it already works.
+  - type: input
+    id: device
+    attributes:
+      label: Brand and model / Merk en type
+      placeholder: "e.g. JBD SP04S020 BMS, LiTime 12V 100Ah, Calypso Ultrasonic Portable"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of device / Soort apparaat
+      options:
+        - Battery / BMS (Bluetooth)
+        - Temperature / humidity sensor
+        - Tank sensor
+        - Wind / weather
+        - NMEA 2000 device or PGN
+        - Other / Anders
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App you use with it now / App die je er nu voor gebruikt
+      placeholder: "e.g. Xiaoxiang, JK BMS, Smart BMS, LiTime, Calypso"
+  - type: textarea
+    id: values
+    attributes:
+      label: What should Bosun show? / Wat moet Bosun laten zien?
+      placeholder: "e.g. SoC, voltage, current, cell voltages, temperature, alarms"
+  - type: textarea
+    id: reference
+    attributes:
+      label: Known protocol or open-source decoder (optional) / Bekend protocol of open-source decoder (optioneel)
+      description: A link to Home Assistant, ESPHome or another project that already reads this device speeds things up a lot.
+      placeholder: "https://github.com/..."
+  - type: checkboxes
+    id: test
+    attributes:
+      label: Testing / Testen
+      options:
+        - label: I have this device and a Bosun board, and I am willing to test a test version and send the log. / Ik heb dit apparaat en een Bosun-board, en wil een testversie proberen en het logboek opsturen.
+          required: true
