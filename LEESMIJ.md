@@ -433,8 +433,10 @@ Systemen verschillen, daarom is het streng:
 
 **Bestel de RTC-cel mee: sterk aangeraden.** De klokchip (PCF85063, adres 0x51) zit op het board, maar houdt de tijd
 alleen vast met een **oplaadbare RTC-cel** op de
-2-polige aansluiting met de opdruk **RTC** (naast de DIP-schakelaar; BAT1 op het schema), als optie bij Waveshare
-te bestellen of als ML1220 met draadjes. De aansluiting **BAT** bovenaan is voor een Li-ion-accu, niet voor de klok. Het board laadt die cel
+2-polige aansluiting met de opdruk **RTC** (naast de DIP-schakelaar; BAT1 op het schema): een **ML2032, ML2020 of
+ML1220 met JST-SH-stekker (1,0 mm)**, zoals de RTC-batterij voor de Raspberry Pi 5. Dat stekkertype is bevestigd voor
+andere ESP32-S3-boards van Waveshare, nog niet voor dit board. Controleer vóór het insteken dat het rode draadje bij de
+**+** of **1** naast de aansluiting uitkomt (pin 1 is plus volgens het schema); omgekeerd kan de klokchip beschadigen. De aansluiting **BAT** bovenaan is voor een Li-ion-accu, niet voor de klok. Het board laadt die cel
 via een diode vanaf 3,3 V: gebruik dus **geen gewone CR2032**. Zonder cel is de tijd na elke stroomuitval weg, tot
 je hem opnieuw instelt of de GPS-tijd binnenkomt.
 

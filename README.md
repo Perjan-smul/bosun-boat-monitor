@@ -433,8 +433,10 @@ Systems differ, which is why it is strict:
 
 **Order the RTC cell too: strongly recommended.** The clock chip (PCF85063, address 0x51) is on the board, but only keeps
 the time with a **rechargeable RTC cell** on the
-2-pin connector printed **RTC** (next to the DIP switch; BAT1 on the schematic), available as an option from Waveshare
-or as an ML1220 with wires. The **BAT** connector at the top is for a Li-ion battery, not for the clock. The board charges that cell
+2-pin connector printed **RTC** (next to the DIP switch; BAT1 on the schematic): an **ML2032, ML2020 or ML1220 with a
+JST SH (1.0 mm) plug**, like the RTC battery for the Raspberry Pi 5. That plug type is confirmed for other Waveshare
+ESP32-S3 boards, not yet for this one. Before plugging in, check that the red wire ends up at the **+** or **1** next to
+the connector (pin 1 is plus according to the schematic); reversed, it can damage the clock chip. The **BAT** connector at the top is for a Li-ion battery, not for the clock. The board charges that cell
 via a diode from 3.3 V: so do **not use an ordinary CR2032**. Without a cell the time is lost after every power cut, until
 you set it again or the GPS time comes in.
 

@@ -171,5 +171,5 @@ via een gateway. Ga je oude apparatuur vervangen, kies dan iets met NMEA 2000.
 | Onderdeel | Board | Opmerking |
 |---|---|---|
 | **BME280** / BMP280 (luchtdruk), aanbevolen: **DFRobot Gravity BME280 (SEN0236)** | Waveshare | I2C, adres 0x76 of 0x77, vanzelf gevonden; klem `VCC GND SDA SCL`, jumper op 3V3. De SEN0236 heeft een vergrendelende stekker: niets solderen, trilt niet los |
-| PCF85063-klok | Waveshare | op het board; **oplaadbare RTC-cel (ML1220) sterk aangeraden** op de aansluiting *RTC*, geen CR2032 |
+| PCF85063-klok | Waveshare | op het board; **oplaadbare RTC-cel sterk aangeraden** (ML2032, ML2020 of ML1220 met JST-SH-stekker, zoals voor de Raspberry Pi 5) op de aansluiting *RTC*, geen CR2032 |
 | micro-SD-kaart | Waveshare | FAT32, tot 32 GB; metingen, logboek en backups |
