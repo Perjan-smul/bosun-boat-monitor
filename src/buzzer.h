@@ -1,5 +1,5 @@
 #pragma once
-// Optionele zoemer: PCF8574 op I2C (automatisch gevonden) of een directe GPIO
-void buzzer_begin();     // na Wire.begin() aanroepen
+// Zoemer op het board (via de hulpchip van de Waveshare)
+void buzzer_begin();     // na wsio_begin() aanroepen
 bool buzzer_present();
 void buzzer_set(bool on);

@@ -1,5 +1,4 @@
 #include "board.h"
-#if defined(BOARD_WAVESHARE_4)
 #include "wsio.h"
 #include <Arduino.h>
 #include <Wire.h>
@@ -96,5 +95,3 @@ void wsio_buzzer(bool on) {
     writeOut();
   }
 }
-
-#endif

@@ -10,7 +10,7 @@ import os
 import re
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-BOARDS = {"waveshare_4": "Waveshare ESP32-S3-Touch-LCD-4", "t_panel_s3": "LilyGO T-Panel S3"}
+BOARDS = {"waveshare_4": "Waveshare ESP32-S3-Touch-LCD-4"}
 # Adressen in het flashgeheugen van de ESP32-S3 (Arduino-framework, zelfde indeling als bij pio run -t upload)
 PARTS = [("bootloader.bin", 0x0), ("partitions.bin", 0x8000), ("boot_app0.bin", 0xE000), ("firmware.bin", 0x10000)]
 

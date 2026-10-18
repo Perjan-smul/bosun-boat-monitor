@@ -21,7 +21,7 @@ boord op echte hardware is gezien, staat erbij.
 | Board | Status |
 |---|---|
 | **Waveshare ESP32-S3-Touch-LCD-4** (V3.0 en V4.0) | aanbevolen; alles op het board: CAN, RTC, zoemer, micro-SD |
-| LilyGO T-Panel S3 (CAN-versie, H720) | werkt; klok en zoemer los erbij |
+| LilyGO T-Panel S3 | niet meer ondersteund (alleen de Waveshare) |
 | Waveshare ESP32-S3-Touch-LCD-4**B** | **nee**: geen CAN en geen 12 V-ingang |
 | Guition ESP32-4848S040 | niet meer ondersteund |
 
@@ -97,7 +97,7 @@ Home Assistant (*Bluetooth-Devices* op GitHub) is dat meestal weinig werk.
 
 ## NMEA 2000
 
-Via CAN (Waveshare: groene klem, T-Panel: CAN-versie). Alles wat deze PGN's stuurt, werkt, ongeacht het merk
+Via CAN (groene klem van de Waveshare). Alles wat deze PGN's stuurt, werkt, ongeacht het merk
 (Garmin, Raymarine, B&G/Simrad/Lowrance, Furuno, Victron GX, Yacht Devices, ...).
 
 | PGN | Inhoud |
@@ -168,8 +168,7 @@ via een gateway. Ga je oude apparatuur vervangen, kies dan iets met NMEA 2000.
 
 | Onderdeel | Board | Opmerking |
 |---|---|---|
-| **BME280** / BMP280 (luchtdruk) | beide | I2C, adres 0x76 of 0x77, vanzelf gevonden. Waveshare: klem `VCC GND SDA SCL`, jumper op 3V3 |
+| **BME280** / BMP280 (luchtdruk) | Waveshare | I2C, adres 0x76 of 0x77, vanzelf gevonden; klem `VCC GND SDA SCL`, jumper op 3V3 |
 | PCF85063-klok | Waveshare | op het board; oplaadbare cel (ML1220) op de aansluiting *RTC*, geen CR2032 |
-| DS3231-klokmodule | T-Panel (werkt ook op Waveshare) | I2C 0x68, CR2032 |
-| PCF8574-backpack met actieve zoemer | T-Panel | I2C 0x27 of 0x3F |
+| DS3231-klokmodule (optioneel) | Waveshare | I2C 0x68, gewone CR2032; gaat voor de klok op het board |
 | micro-SD-kaart | Waveshare | FAT32, tot 32 GB; metingen, logboek en backups |

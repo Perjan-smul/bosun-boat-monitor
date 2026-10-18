@@ -5,17 +5,15 @@
 A dashboard for BLE sensors and NMEA 2000 on board, running on an ESP32-S3 with a 4" touchscreen (480×480).
 You add and manage sensors directly on the touchscreen, without having to change any code.
 
-## Boards
+## Board
 
-| Board | NMEA 2000 | Power supply | Clock | Buzzer | Build |
-|---|---|---|---|---|---|
-| **Waveshare ESP32-S3-Touch-LCD-4** (recommended) | on the board | 7–36 V | on the board (PCF85063) | on the board | `waveshare_4` (default) |
-| LilyGO T-Panel S3, CAN version H720 | on the board | 7–24 V | separate DS3231 module | via LCD backpack | `t_panel_s3` |
+Bosun runs on the **Waveshare ESP32-S3-Touch-LCD-4** (4", 480 × 480): NMEA 2000 (CAN), clock (PCF85063), buzzer,
+micro-SD and a 7–36 V power supply are all on the board.
 
 The Waveshare has everything on board: you only connect 12 V and the NMEA 2000 cable. Mind the name: the
 **ESP32-S3-Touch-LCD-4B** is a different board (audio, no CAN, no 12 V input) and does not work without extra modules.
 Waveshare hardware versions V4.0 (helper chip CH32V003) and V3.0 (TCA9554) are detected automatically.
-Only the Waveshare has not yet been tested on a real board; the pins come from Waveshare's own examples and the
+Bosun has not yet been tested on a real board; the pins come from Waveshare's own examples and the
 V4.0 schematic.
 
 ## What it does
@@ -131,23 +129,10 @@ Every limit has two levels. **Orange** is a warning: the screen turns on briefly
   A red alarm that drops back to orange and then becomes red again is unacknowledged again.
 - **Buzzer**: only beeps on red, two short beeps every 2.5 s. Switch off in ⚙ Settings → *Buzzer on alarm*.
 
-### Connecting a buzzer (optional)
-
-- **Waveshare**: the buzzer is on the board. Nothing to connect.
-
-The T-Panel has no free ESP32-S3 pin on a connector, but it does have two 4-pin **I2C ports** (3V3, SDA, SCL, GND).
-- **T-Panel**: use an **I2C LCD backpack** (the PCF8574 board for 1602/2004 displays, about €2). You don't need the LCD itself.
-  - Connect the backpack with 4 wires to an I2C port: **GND, VCC (3V3), SDA, SCL**.
-  - Connect an **active buzzer (3–5 V)** to the 16-pin LCD header: **+ to pin 15** (A, backlight),
-    **− to pin 16** (K). The transistor on the backpack then switches the buzzer. Leave the "LED" jumper in place.
-  - The address is **0x27** (PCF8574) or **0x3F** (PCF8574A) by default. Both are **found automatically**.
-    Do not change the A0–A2 jumpers to 0x20, because the screen uses that address.
-  - A bare PCF8574 module also works: buzzer + to VCC, − to P0.
-- **Other board with a free GPIO**: set `BUZZER_GPIO` in `src/board.h` (and `BUZZER_ACTIVE_LOW` to suit your module).
-
+The buzzer is on the board; there is nothing to connect.
 In ⚙ Settings you can see whether the buzzer was found and you can test it. Without a buzzer the alarms only work on screen.
 
-## NMEA 2000 (Waveshare, or the CAN version of the T-Panel, H720)
+## NMEA 2000
 
 Bosun **only listens** on the bus (250 kbit/s, listen-only). It transmits nothing, claims no address and can therefore
 never disturb the bus. On/off and the bus status (messages/s, number of devices) are in ⚙ Settings.
@@ -201,11 +186,10 @@ The decoder has been tested against **canboat** (the open-source reference for N
 (about 770,000 messages) and on real CAN frames with fast packets. All values matched.
 
 **Connecting**:
-- **Waveshare**: the green 10-pin screw terminal on the bottom edge (printed `VIN GND | A B | L H | VCC GND SDA SCL`):
+- The green 10-pin screw terminal on the bottom edge (printed `VIN GND | A B | L H | VCC GND SDA SCL`):
   NET-H (white) → **H** (pin 6), NET-L (blue) → **L** (pin 5), NET-C (black) → **GND** in the I2C block (pin 8).
   On the DIP switch **120R**, set **CAN** to off: Bosun hangs on a drop cable, not at the
   end of the backbone.
-- **T-Panel**: see the terminal on the CAN module. NET-H (white) → H, NET-L (blue) → L, NET-C (black) → GND.
 - Then check, with the backbone connected and the network powered off: **60 Ω** between H and L. If you read about 40 Ω there is a
   third terminator present (often the one on the board); it must be switched off.
 
@@ -284,8 +268,8 @@ On your phone you can see what the board is doing, without a laptop:
 
 ### Firmware update
 
-1. Choose the `.bin` file and upload it. That is `.pio/build/waveshare_4/firmware.bin` after `pio run`
-   (T-Panel: `t_panel_s3`).
+1. Choose the `.bin` file and upload it. That is `.pio/build/waveshare_4/firmware.bin` after `pio run`,
+   or the update file from the installer page.
 2. **Install new firmware?** appears on the screen. Tap **Install** to restart, or **Reject**.
    With no answer within 60 s it is rejected.
 
@@ -324,7 +308,7 @@ On your phone you can see what the board is doing, without a laptop:
   (with the own hotspot, the code is the WiFi password).
 - WiFi is **off** until you turn on the WiFi page, and turns itself off after a period without use: adjustable under **Off after** (5, 10, 30 or 60 min; default 10).
 - Nothing is uploaded or installed if there is an unacknowledged alarm.
-- A file for a different board (e.g. the T-Panel build on a Waveshare) or anything other than Bosun firmware is rejected.
+- A file for a different board or anything other than Bosun firmware is rejected.
 - The new version goes into the other slot. Only after **Install** does the board start from it. If the power fails
   before you confirm, the current version simply starts.
 - If the new version does not start properly (restarted 2 times within 60 s), the board goes back to the previous version.
@@ -369,7 +353,7 @@ A dedicated **Barometer** page with the air pressure, the trend over 3 hours and
 
 | Source (the first one available) | How |
 |---|---|
-| **BME280 or BMP280 module** (about €5) | on I2C: Waveshare terminal `VCC GND SDA SCL` (I2C jumper on **3V3**), T-Panel: an I2C port. Address 0x76 or 0x77, found automatically |
+| **BME280 or BMP280 module** (about €5) | on I2C: the terminal `VCC GND SDA SCL` (I2C jumper on **3V3**). Address 0x76 or 0x77, found automatically |
 | **NMEA 2000** | an instrument that sends air pressure (PGN 130314, 130311 or 130310), e.g. a weather station |
 | **Bluetooth** | a sensor with air pressure: RuuviTag or BTHome |
 
@@ -447,15 +431,14 @@ Systems differ, which is why it is strict:
   If Bosun follows the plotter, it follows that error too; in that case choose *Own time*.
 - *Clock from GPS* off = also take nothing from the plotter.
 
-**Waveshare**: the clock chip (PCF85063, address 0x51) is on the board and needs a **rechargeable RTC cell** on the
+The clock chip (PCF85063, address 0x51) is on the board and needs a **rechargeable RTC cell** on the
 2-pin connector printed **RTC** (next to the DIP switch; BAT1 on the schematic), available as an option from Waveshare
 or as an ML1220 with wires. The **BAT** connector at the top is for a Li-ion battery, not for the clock. The board charges that cell
 via a diode from 3.3 V: so do **not use an ordinary CR2032**. Without a cell the time is lost after every power cut, until
 you set it again or the GPS time comes in.
 
-**T-Panel**: connect a **DS3231 RTC module** (about €3, with CR2032 coin cell) to the second I2C port
-(3V3, SDA, SCL, GND). It is found automatically (address 0x68) and can sit alongside the buzzer module.
-If both clock chips are present, the DS3231 takes priority.
+Prefer an ordinary CR2032? Then connect a **DS3231 RTC module** (about €3) to the I2C terminal (`VCC GND SDA SCL`).
+It is found automatically (address 0x68) and then takes priority over the clock chip on the board.
 - **Setting**: once, via ⚙ Settings → *Set* (scroll wheels for date and time). Dutch time;
   summer and winter time change automatically.
 - **Kept**: the RTC keeps the time for years, even without power. Accurate to about 1 minute per year.
@@ -497,20 +480,19 @@ alarm with buzzer can be heard from your bunk too.
 
 ## Connecting (power supply)
 
-- **Waveshare**: **7–36 V** on **VIN** (pin 1) and **GND** (pin 2) of the green screw terminal. So directly on the
+- **7–36 V** on **VIN** (pin 1) and **GND** (pin 2) of the green screw terminal. So directly on the
   12 V or 24 V on-board supply, fused (e.g. 1 A).
-- **T-Panel**: **7–24 V** via the 2-pin screw terminal, fused (e.g. 1 A).
 - USB-C is only for flashing and the serial log. The assembly guide has drawings of all connections.
 
 ## Installing from the browser
 
-The easiest way: open **[the Bosun installer](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome or Edge on a computer, choose your board, connect it
+The easiest way: open **[the Bosun installer](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome or Edge on a computer, connect the board
 with a USB-C data cable and click **Install Bosun**. No software to install and nothing to compile.
 Choose *Erase device* on a first install; do not erase when updating, so your devices, keys and settings stay.
 The same page has the update files (`.bin`) for updating over WiFi.
 
 The page lives in `web/` and is published to GitHub Pages by `.github/workflows/installer.yml`, which builds the
-firmware for both boards on every push to `main`. A tag `v…` also puts the update files on a GitHub release.
+firmware on every push to `main`. A tag `v…` also puts the update files on a GitHub release.
 
 **Testing the installer privately:** every run also produces the complete page as a download. Open the run under
 *Actions*, download the artifact **bosun-installer**, unzip it, run `python3 -m http.server 8000` in that folder and open
@@ -524,8 +506,7 @@ With [PlatformIO](https://platformio.org/) (VS Code extension or CLI):
 ```bash
 git clone https://github.com/Perjan-smul/bosun-boat-monitor
 cd bosun-boat-monitor
-pio run -t upload                          # Waveshare ESP32-S3-Touch-LCD-4 (default)
-pio run -e t_panel_s3 -t upload            # LilyGO T-Panel S3
+pio run -t upload                          # build and flash
 pio device monitor                         # serial log, 115200 baud
 ```
 
@@ -537,25 +518,23 @@ automatically. Uses the Arduino framework (ESP32 core 2.0.x via `espressif32@6.9
 
 **Arduino IDE** works too: board *ESP32S3 Dev Module*, PSRAM *OPI PSRAM*, Flash *16MB*, install the three
 libraries above, put `lv_conf.h` next to the `lvgl` library folder and copy `src/` into your sketch.
-Without any extra setting it builds for the Waveshare; then also set *USB CDC On Boot* to *Enabled* for the serial log.
-For the T-Panel, put a `#define BOARD_T_PANEL_S3` at the top of `board.h`.
+Also set *USB CDC On Boot* to *Enabled* for the serial log.
 
 ## Project structure
 
 ```
 platformio.ini
 include/lv_conf.h     LVGL settings (fonts, memory)
-src/board.h           pins per board + touch orientation
-src/display.cpp       ST7701 RGB panel, init via XL9535 (T-Panel) or SPI (Waveshare), LVGL binding
+src/board.h           pins of the board + touch orientation
+src/display.cpp       ST7701 RGB panel (init via SPI), LVGL binding
 src/wsio.cpp          Waveshare helper chip (CH32V003 or TCA9554): resets, backlight, buzzer
-src/cst3240.h         touch driver T-Panel S3
-src/gt911.h           touch driver Waveshare
+src/gt911.h           touch driver
 src/ble.cpp           continuous BLE scanning (NimBLE)
 src/sensors.cpp       decoders: Victron (AES-CTR), Ruuvi, ATC/pvvx, BTHome
 src/store.cpp         device list, found devices, storage in NVS
 src/ui.cpp            screens: swipeable themed pages, scanning, add/edit, details, settings, alarm bar
 src/alarms.cpp        orange/red alerts, hysteresis, acknowledging, buzzer pattern
-src/buzzer.cpp        buzzer on the board (Waveshare), via PCF8574 (found automatically) or GPIO
+src/buzzer.cpp        buzzer on the board (via the helper chip)
 src/settings.cpp      settings in NVS
 src/energy.cpp        adding up the energy flow (overview and history)
 src/baro.cpp          barometer: source selection, 48-hour history, trend, saving
@@ -595,9 +574,6 @@ src/n2k.cpp           CAN (TWAI) listen-only, clock from GPS
 - **Touch is mirrored or rotated**: adjust `TOUCH_SWAP_XY` / `TOUCH_INVERT_X` / `TOUCH_INVERT_Y` in `src/board.h`.
 - **Screen stays black**: check that PSRAM is enabled (`qio_opi`). The framebuffer is in PSRAM.
   Look in the serial log for "gfx->begin() mislukt" (failed) or "touchcontroller niet gevonden" (touch controller not found).
-- **Colours are wrong (red and blue swapped, T-Panel)**: in `display.cpp` set MADCTL `0x36` to `0x00`.
-- **Picture flickers or shifts (T-Panel)**: in `display.cpp` set `pclk_active_neg` to `0`. This is the value that
-  LilyGO's ESP-IDF driver uses; the Arduino example uses `1`.
 - **Victron shows "Wrong key"**: the key does not belong to this device. After a *reset* in VictronConnect the key changes too.
 - **Victron shows "Key needed"**: tap the tile → Edit → enter the key.
 - **No sensors found**: Instant readout is off (Victron), or the sensor is too far away or transmits encrypted (BTHome).

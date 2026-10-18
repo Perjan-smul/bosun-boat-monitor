@@ -5,17 +5,15 @@
 Dashboard voor BLE-sensoren en NMEA 2000 aan boord, op een ESP32-S3 met 4" touchscreen (480×480).
 Je voegt sensoren toe en beheert ze direct op het touchscreen, zonder dat je de code hoeft aan te passen.
 
-## Boards
+## Board
 
-| Board | NMEA 2000 | Voeding | Klok | Zoemer | Build |
-|---|---|---|---|---|---|
-| **Waveshare ESP32-S3-Touch-LCD-4** (aanbevolen) | op het board | 7–36 V | op het board (PCF85063) | op het board | `waveshare_4` (standaard) |
-| LilyGO T-Panel S3, CAN-versie H720 | op het board | 7–24 V | losse DS3231-module | via LCD-backpack | `t_panel_s3` |
+Bosun draait op de **Waveshare ESP32-S3-Touch-LCD-4** (4", 480 × 480): NMEA 2000 (CAN), klok (PCF85063), zoemer,
+micro-SD en een voeding van 7–36 V zitten op het board.
 
 De Waveshare heeft alles aan boord: je sluit alleen 12 V en de NMEA 2000-kabel aan. Let op de naam: de
 **ESP32-S3-Touch-LCD-4B** is een ander board (audio, geen CAN, geen 12 V-ingang) en werkt niet zonder extra modules.
 Van de Waveshare worden hardwareversie V4.0 (hulpchip CH32V003) en V3.0 (TCA9554) automatisch herkend.
-Alleen de Waveshare is nog niet op een echt board getest; de pinnen komen uit Waveshare's eigen voorbeelden en het
+Bosun is nog niet op een echt board getest; de pinnen komen uit Waveshare's eigen voorbeelden en het
 V4.0-schema.
 
 ## Wat kan het
@@ -131,23 +129,10 @@ Elke grens heeft twee niveaus. **Oranje** is een waarschuwing: het scherm gaat e
   Een rood alarm dat terugzakt naar oranje en daarna opnieuw rood wordt, is weer onbevestigd.
 - **Zoemer**: piept alleen bij rood, twee korte piepjes elke 2,5 s. Uitschakelen in ⚙ Instellingen → *Zoemer bij alarm*.
 
-### Zoemer aansluiten (optioneel)
-
-- **Waveshare**: de zoemer zit op het board. Niets aan te sluiten.
-
-De T-Panel heeft geen vrije ESP32-S3-pin op een connector, maar wel twee 4-polige **I2C-poorten** (3V3, SDA, SCL, GND).
-- **T-Panel**: gebruik een **I2C-LCD-backpack** (de PCF8574-printplaat voor 1602/2004-displays, ± €2). Het LCD zelf heb je niet nodig.
-  - Sluit de backpack met 4 draden aan op een I2C-poort: **GND, VCC (3V3), SDA, SCL**.
-  - Sluit een **actieve zoemer (3–5 V)** aan op de 16-polige LCD-header: **+ op pin 15** (A, achtergrondverlichting),
-    **− op pin 16** (K). De transistor op de backpack schakelt dan de zoemer. Laat de jumper "LED" zitten.
-  - Het adres staat standaard op **0x27** (PCF8574) of **0x3F** (PCF8574A). Beide worden **automatisch gevonden**.
-    Verander de jumpers A0–A2 niet naar 0x20, want dat adres gebruikt het scherm.
-  - Een kale PCF8574-module werkt ook: zoemer + op VCC, − op P0.
-- **Ander board met een vrije GPIO**: zet `BUZZER_GPIO` in `src/board.h` (en `BUZZER_ACTIVE_LOW` naar je module).
-
+De zoemer zit op het board; er is niets aan te sluiten.
 In ⚙ Instellingen zie je of de zoemer gevonden is en kun je hem testen. Zonder zoemer werken de alarmen alleen op het scherm.
 
-## NMEA 2000 (Waveshare, of de CAN-versie van de T-Panel, H720)
+## NMEA 2000
 
 Bosun **luistert alleen** op de bus (250 kbit/s, listen-only). Hij zendt niets, claimt geen adres en kan de bus
 dus nooit verstoren. Aan/uit en de busstatus (berichten/s, aantal apparaten) staan in ⚙ Instellingen.
@@ -201,11 +186,10 @@ De decoder is getest tegen **canboat** (de open-source referentie voor NMEA 2000
 (± 770.000 berichten) en op echte CAN-frames met fast packets. Alle waarden kwamen overeen.
 
 **Aansluiten**:
-- **Waveshare**: de groene 10-polige schroefklem aan de onderrand (opdruk `VIN GND | A B | L H | VCC GND SDA SCL`):
+- De groene 10-polige schroefklem aan de onderrand (opdruk `VIN GND | A B | L H | VCC GND SDA SCL`):
   NET-H (wit) → **H** (pin 6), NET-L (blauw) → **L** (pin 5), NET-C (zwart) → **GND** in het I2C-blok (pin 8).
   Zet op de DIP-schakelaar **120R** de stand **CAN** uit: Bosun hangt aan een drop-kabel, niet aan het
   eind van de backbone.
-- **T-Panel**: zie de klem op de CAN-module. NET-H (wit) → H, NET-L (blauw) → L, NET-C (zwart) → GND.
 - Controleer daarna met de backbone aangesloten en het netwerk uit: **60 Ω** tussen H en L. Bij ± 40 Ω staat er een
   derde afsluiter bij (vaak die op het board); die moet uit.
 
@@ -284,8 +268,8 @@ Op je telefoon zie je wat het board doet, zonder laptop:
 
 ### Firmware-update
 
-1. Kies het `.bin`-bestand en upload. Dat is `.pio/build/waveshare_4/firmware.bin` na `pio run`
-   (T-Panel: `t_panel_s3`).
+1. Kies het `.bin`-bestand en upload. Dat is `.pio/build/waveshare_4/firmware.bin` na `pio run`,
+   of het updatebestand van de installatiepagina.
 2. Op het scherm verschijnt **Nieuwe firmware installeren?**. Tik op **Installeer** om te herstarten, of op **Afwijzen**.
    Zonder antwoord binnen 60 s wordt het afgewezen.
 
@@ -324,7 +308,7 @@ Op je telefoon zie je wat het board doet, zonder laptop:
   (bij het eigen wifipunt is de code het wifi-wachtwoord).
 - Wifi staat **uit** tot je de wifi-pagina aanzet, en gaat zelf uit na een tijd zonder gebruik: instelbaar bij **Uit na** (5, 10, 30 of 60 min; standaard 10).
 - Er wordt niets geüpload of geïnstalleerd als er een onbevestigd alarm is.
-- Een bestand voor een ander board (bv. de T-Panel-build op een Waveshare) of iets anders dan Bosun-firmware wordt geweigerd.
+- Een bestand voor een ander board of iets anders dan Bosun-firmware wordt geweigerd.
 - De nieuwe versie komt in de andere slot. Pas na **Installeer** start het board daarvan. Valt de stroom weg
   voordat je bevestigt, dan start gewoon de huidige versie.
 - Start de nieuwe versie niet goed op (2 keer opnieuw opgestart binnen 60 s), dan gaat het board terug naar de vorige versie.
@@ -369,7 +353,7 @@ Een eigen pagina **Barometer** met de luchtdruk, de trend over 3 uur en het verl
 
 | Bron (de eerste die er is) | Hoe |
 |---|---|
-| **BME280- of BMP280-module** (± €5) | op I2C: Waveshare-klem `VCC GND SDA SCL` (jumper I2C op **3V3**), T-Panel: een I2C-poort. Adres 0x76 of 0x77, vanzelf gevonden |
+| **BME280- of BMP280-module** (± €5) | op I2C: de klem `VCC GND SDA SCL` (jumper I2C op **3V3**). Adres 0x76 of 0x77, vanzelf gevonden |
 | **NMEA 2000** | een instrument dat luchtdruk stuurt (PGN 130314, 130311 of 130310), bv. een weerstation |
 | **Bluetooth** | een sensor met luchtdruk: RuuviTag of BTHome |
 
@@ -447,15 +431,14 @@ Systemen verschillen, daarom is het streng:
   Volgt Bosun de plotter, dan ook in die fout; kies dan *Eigen tijd*.
 - *Klok via GPS* uit = ook niets van de plotter overnemen.
 
-**Waveshare**: de klokchip (PCF85063, adres 0x51) zit op het board en heeft een **oplaadbare RTC-cel** nodig op de
+De klokchip (PCF85063, adres 0x51) zit op het board en heeft een **oplaadbare RTC-cel** nodig op de
 2-polige aansluiting met de opdruk **RTC** (naast de DIP-schakelaar; BAT1 op het schema), als optie bij Waveshare
 te bestellen of als ML1220 met draadjes. De aansluiting **BAT** bovenaan is voor een Li-ion-accu, niet voor de klok. Het board laadt die cel
 via een diode vanaf 3,3 V: gebruik dus **geen gewone CR2032**. Zonder cel is de tijd na elke stroomuitval weg, tot
 je hem opnieuw instelt of de GPS-tijd binnenkomt.
 
-**T-Panel**: sluit een **DS3231-RTC-module** (± €3, met CR2032-knoopcel) aan op de tweede I2C-poort
-(3V3, SDA, SCL, GND). Hij wordt automatisch gevonden (adres 0x68) en kan naast de zoemermodule zitten.
-Zitten er beide klokchips, dan gaat de DS3231 voor.
+Liever een gewone CR2032? Sluit dan een **DS3231-RTC-module** (± €3) aan op de I2C-klem (`VCC GND SDA SCL`).
+Die wordt automatisch gevonden (adres 0x68) en gaat dan voor de klokchip op het board.
 - **Instellen**: eenmalig via ⚙ Instellingen → *Instellen* (draaiwieltjes voor datum en tijd). Nederlandse tijd;
   zomer- en wintertijd gaan vanzelf.
 - **Bewaard**: de RTC bewaart de tijd jarenlang, ook zonder stroom. Nauwkeurig tot ± 1 minuut per jaar.
@@ -497,20 +480,19 @@ alarm met zoemer is ook in de kooi te horen.
 
 ## Aansluiten (voeding)
 
-- **Waveshare**: **7–36 V** op **VIN** (pin 1) en **GND** (pin 2) van de groene schroefklem. Dus direct op de
+- **7–36 V** op **VIN** (pin 1) en **GND** (pin 2) van de groene schroefklem. Dus direct op de
   12 V of 24 V boordspanning, gezekerd (bv. 1 A).
-- **T-Panel**: **7–24 V** via de 2-polige schroefklem, gezekerd (bv. 1 A).
 - USB-C is alleen voor flashen en de seriële log. De montagehandleiding heeft tekeningen van alle aansluitingen.
 
 ## Installeren vanuit de browser
 
-De makkelijkste manier: open **[de Bosun-installatiepagina](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome of Edge op een computer, kies je board,
-sluit het aan met een USB-C-kabel voor data en klik op **Bosun installeren**. Niets installeren, niets compileren.
+De makkelijkste manier: open **[de Bosun-installatiepagina](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome of Edge op een computer,
+sluit het board aan met een USB-C-kabel voor data en klik op **Bosun installeren**. Niets installeren, niets compileren.
 Kies bij de eerste installatie *Erase device*; wis bij een update niet, dan blijven je apparaten, sleutels en
 instellingen staan. Op dezelfde pagina staan de updatebestanden (`.bin`) om via wifi bij te werken.
 
 De pagina staat in `web/` en komt via `.github/workflows/installer.yml` op GitHub Pages; die bouwt bij elke push
-naar `main` de firmware voor beide boards. Bij een tag `v…` komen de updatebestanden ook bij een release op GitHub.
+naar `main` de firmware. Bij een tag `v…` komen de updatebestanden ook bij een release op GitHub.
 
 **De installatiepagina zelf testen, zonder hem openbaar te maken:** elke run maakt de complete pagina ook als download.
 Open de run onder *Actions*, download het artifact **bosun-installer**, pak het uit, start in die map
@@ -524,8 +506,7 @@ Met [PlatformIO](https://platformio.org/) (VS Code-extensie of CLI):
 ```bash
 git clone https://github.com/Perjan-smul/bosun-boat-monitor
 cd bosun-boat-monitor
-pio run -t upload                          # Waveshare ESP32-S3-Touch-LCD-4 (standaard)
-pio run -e t_panel_s3 -t upload            # LilyGO T-Panel S3
+pio run -t upload                          # bouwen en flashen
 pio device monitor                         # seriële log, 115200 baud
 ```
 
@@ -537,25 +518,23 @@ gedownload. Gebruikt het Arduino-framework (ESP32 core 2.0.x via `espressif32@6.
 
 **Arduino IDE** kan ook: board *ESP32S3 Dev Module*, PSRAM *OPI PSRAM*, Flash *16MB*, installeer de drie
 bibliotheken hierboven, zet `lv_conf.h` naast de `lvgl`-bibliotheekmap en kopieer `src/` naar je sketch.
-Zonder extra instelling bouwt hij voor de Waveshare; zet dan ook *USB CDC On Boot* op *Enabled* voor de seriële log.
-Voor de T-Panel zet je bovenaan `board.h` een `#define BOARD_T_PANEL_S3`.
+Zet ook *USB CDC On Boot* op *Enabled* voor de seriële log.
 
 ## Projectstructuur
 
 ```
 platformio.ini
 include/lv_conf.h     LVGL-instellingen (fonts, geheugen)
-src/board.h           pinnen per board + touch-oriëntatie
-src/display.cpp       ST7701 RGB-paneel, init via XL9535 (T-Panel) of SPI (Waveshare), LVGL-koppeling
+src/board.h           pinnen van het board + touch-oriëntatie
+src/display.cpp       ST7701 RGB-paneel (init via SPI), LVGL-koppeling
 src/wsio.cpp          Waveshare-hulpchip (CH32V003 of TCA9554): resets, achtergrondverlichting, zoemer
-src/cst3240.h         touchdriver T-Panel S3
-src/gt911.h           touchdriver Waveshare
+src/gt911.h           touchdriver
 src/ble.cpp           continu BLE-scannen (NimBLE)
 src/sensors.cpp       decoders: Victron (AES-CTR), Ruuvi, ATC/pvvx, BTHome
 src/store.cpp         apparatenlijst, gevonden apparaten, opslag in NVS
 src/ui.cpp            schermen: swipebare themapagina's, scannen, toevoegen/bewerken, details, instellingen, alarmbalk
 src/alarms.cpp        meldingen oranje/rood, hysterese, bevestigen, zoemerpatroon
-src/buzzer.cpp        zoemer op het board (Waveshare), via PCF8574 (automatisch gevonden) of GPIO
+src/buzzer.cpp        zoemer op het board (via de hulpchip)
 src/settings.cpp      instellingen in NVS
 src/energy.cpp        energiestroom optellen (overzicht en historie)
 src/baro.cpp          barometer: bronkeuze, verloop van 48 uur, trend, bewaren
@@ -595,9 +574,6 @@ src/n2k.cpp           CAN (TWAI) alleen-luisteren, klok via GPS
 - **Touch zit gespiegeld of gedraaid**: pas `TOUCH_SWAP_XY` / `TOUCH_INVERT_X` / `TOUCH_INVERT_Y` aan in `src/board.h`.
 - **Scherm blijft zwart**: controleer of PSRAM aanstaat (`qio_opi`). Het framebuffer staat in PSRAM.
   Kijk in de seriële log of er "gfx->begin() mislukt" of "touchcontroller niet gevonden" staat.
-- **Kleuren kloppen niet (rood en blauw omgewisseld, T-Panel)**: zet in `display.cpp` MADCTL `0x36` op `0x00`.
-- **Beeld flikkert of schuift (T-Panel)**: zet in `display.cpp` `pclk_active_neg` op `0`. Dit is de waarde die
-  LilyGO's ESP-IDF-driver gebruikt; het Arduino-voorbeeld gebruikt `1`.
 - **Victron toont "Sleutel onjuist"**: de sleutel hoort niet bij dit apparaat. Na een *reset* in VictronConnect verandert de sleutel ook.
 - **Victron toont "Sleutel nodig"**: tik op de tegel → Bewerken → sleutel invullen.
 - **Geen sensoren gevonden**: Instant readout staat uit (Victron), of de sensor is te ver weg of zendt versleuteld uit (BTHome).

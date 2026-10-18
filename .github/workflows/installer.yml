@@ -1,4 +1,4 @@
-# Bouwt de firmware voor beide boards en maakt de installatiepagina (web/): als download (artifact
+# Bouwt de firmware en maakt de installatiepagina (web/): als download (artifact
 # bosun-installer) en, bij een openbare repository, op GitHub Pages.
 # Bij een tag v* komen de updatebestanden ook bij een release op GitHub.
 name: Firmware and web installer
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [waveshare_4, t_panel_s3]
+        env: [waveshare_4]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -97,7 +97,7 @@ jobs:
           path: firmware
       - name: Name the update files
         run: |
-          for b in waveshare_4 t_panel_s3; do cp firmware/$b/firmware.bin bosun-${{ github.ref_name }}-$b.bin; done
+          for b in waveshare_4; do cp firmware/$b/firmware.bin bosun-${{ github.ref_name }}-$b.bin; done
       - uses: softprops/action-gh-release@v2
         with:
           files: bosun-*.bin

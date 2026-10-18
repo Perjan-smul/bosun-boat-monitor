@@ -169,7 +169,7 @@ void handleFirmware() {
   p += F("</a></p><h2>");
   p += T("Firmware-update");
   p += F("</h2><p>");
-  p += T("Kies het .bin-bestand van de nieuwe versie. Daarna bevestig je de installatie op het scherm van de T-Panel.");
+  p += T("Kies het .bin-bestand van de nieuwe versie. Daarna bevestig je de installatie op het scherm van Bosun.");
   p += F("</p><form method=POST action=/update enctype=multipart/form-data>"
          "<input type=file name=firmware accept=.bin><br><br><button type=submit>");
   p += T("Uploaden");
@@ -185,7 +185,7 @@ void handleUploadDone() {
     snprintf(msg, sizeof(msg), T("Niet gelukt: %s"), T(rejectReason));
     web.send(409, "text/plain; charset=utf-8", msg);
   } else if (phase == OtaPhase::Staged) {
-    web.send(200, "text/plain; charset=utf-8", T("Ontvangen. Bevestig de installatie op het scherm van de T-Panel."));
+    web.send(200, "text/plain; charset=utf-8", T("Ontvangen. Bevestig de installatie op het scherm van Bosun."));
   } else {
     web.send(500, "text/plain; charset=utf-8", T("Onbekende fout."));
   }

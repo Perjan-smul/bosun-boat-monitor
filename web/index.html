@@ -47,15 +47,6 @@
     display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
     background: var(--accent-soft); color: var(--accent); font-size: 14px; flex: none;
   }
-  .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-  .board {
-    display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px;
-    border: 1px solid var(--line); cursor: pointer;
-  }
-  .board:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
-  .board input { accent-color: var(--accent); margin-top: 4px; }
-  .board strong { display: block; font-weight: 600; }
-  .board span { color: var(--muted); font-size: 14px; }
   .install { text-align: center; padding: 8px 0 4px; }
   esp-web-install-button button[slot="activate"] {
     background: var(--accent); color: #000; border: 0; border-radius: 999px;
@@ -103,29 +94,10 @@
 
   <section>
     <h2><span class="step">1</span>
-      <span data-lang="en">Choose your board</span><span data-lang="nl">Kies je board</span></h2>
-    <div class="boards">
-      <label class="board">
-        <input type="radio" name="board" value="waveshare_4" checked>
-        <div><strong>Waveshare ESP32-S3-Touch-LCD-4</strong>
-          <span data-lang="en">Recommended. NMEA 2000, clock and buzzer on the board.</span>
-          <span data-lang="nl">Aanbevolen. NMEA 2000, klok en zoemer op het board.</span></div>
-      </label>
-      <label class="board">
-        <input type="radio" name="board" value="t_panel_s3">
-        <div><strong>LilyGO T-Panel S3</strong>
-          <span data-lang="en">NMEA 2000 only on the CAN version (H720).</span>
-          <span data-lang="nl">NMEA 2000 alleen bij de CAN-versie (H720).</span></div>
-      </label>
-    </div>
-  </section>
-
-  <section>
-    <h2><span class="step">2</span>
       <span data-lang="en">Connect and install</span><span data-lang="nl">Aansluiten en installeren</span></h2>
     <ol>
-      <li data-lang="en">Connect the board to this computer with a USB-C cable that carries data (not a charge-only cable).</li>
-      <li data-lang="nl">Sluit het board met een USB-C-kabel aan op deze computer. Gebruik een kabel voor data, geen laadkabel.</li>
+      <li data-lang="en">Connect the <strong>Waveshare ESP32-S3-Touch-LCD-4</strong> to this computer with a USB-C cable that carries data (not a charge-only cable).</li>
+      <li data-lang="nl">Sluit de <strong>Waveshare ESP32-S3-Touch-LCD-4</strong> met een USB-C-kabel aan op deze computer. Gebruik een kabel voor data, geen laadkabel.</li>
       <li data-lang="en">Click <strong>Install Bosun</strong>, pick the port (usually "USB JTAG/serial debug unit") and confirm.</li>
       <li data-lang="nl">Klik op <strong>Bosun installeren</strong>, kies de poort (meestal "USB JTAG/serial debug unit") en bevestig.</li>
       <li data-lang="en">Wait until it says the installation is complete (about 1 to 2 minutes), then press the reset button or unplug and replug the board.</li>
@@ -169,12 +141,11 @@
     <h2><span class="step">↻</span>
       <span data-lang="en">Update over WiFi</span><span data-lang="nl">Bijwerken via wifi</span></h2>
     <p style="margin:0">
-      <span data-lang="en">Download the update file for your board, turn on the WiFi page on the screen and upload it under <em>Firmware update</em>. The board checks that the file belongs to it.</span>
-      <span data-lang="nl">Download het updatebestand voor je board, zet op het scherm de wifi-pagina aan en upload het bij <em>Firmware-update</em>. Het board controleert of het bestand bij hem hoort.</span>
+      <span data-lang="en">Download the update file, turn on the WiFi page on the screen and upload it under <em>Firmware update</em>. The board checks that the file belongs to it.</span>
+      <span data-lang="nl">Download het updatebestand, zet op het scherm de wifi-pagina aan en upload het bij <em>Firmware-update</em>. Het board controleert of het bestand bij hem hoort.</span>
     </p>
     <div class="downloads">
-      <a href="firmware/waveshare_4/firmware.bin" download="bosun-waveshare_4.bin">Waveshare (.bin)</a>
-      <a href="firmware/t_panel_s3/firmware.bin" download="bosun-t_panel_s3.bin">T-Panel S3 (.bin)</a>
+      <a href="firmware/waveshare_4/firmware.bin" download="bosun-waveshare_4.bin"><span data-lang="en">Update file</span><span data-lang="nl">Updatebestand</span> (.bin)</a>
     </div>
   </section>
 
@@ -189,7 +160,6 @@
 
 <script>
   // Taal: Nederlands als de browser Nederlands is, anders Engels; de keuze wordt onthouden
-  const installer = document.getElementById("installer");
   function setLang(lang) {
     document.documentElement.lang = lang;
     document.querySelectorAll("[data-lang]").forEach(el => el.classList.toggle("on", el.dataset.lang === lang));
@@ -201,9 +171,6 @@
   setLang(saved || ((navigator.language || "").toLowerCase().startsWith("nl") ? "nl" : "en"));
   document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.set)));
 
-  // Board: de installatieknop wijst naar het manifest van dat board
-  document.querySelectorAll('input[name="board"]').forEach(r =>
-    r.addEventListener("change", () => { installer.manifest = `manifest_${r.value}.json`; }));
 
   // Versie uit het manifest tonen
   fetch("manifest_waveshare_4.json").then(r => r.json()).then(m => {
