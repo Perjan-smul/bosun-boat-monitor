@@ -16,6 +16,8 @@ Waveshare hardware versions V4.0 (helper chip CH32V003) and V3.0 (TCA9554) are d
 Bosun has not yet been tested on a real board; the pins come from Waveshare's own examples and the
 V4.0 schematic.
 
+**What to buy:** [PARTS.md](PARTS.md) (parts list with search terms and prices). **How to connect and mount it:** [ASSEMBLY.md](ASSEMBLY.md).
+
 ## What it does
 
 | Sensor | What you see | Note |

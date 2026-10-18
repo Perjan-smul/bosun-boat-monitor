@@ -21,8 +21,8 @@ board, and all other sensors are wireless via Bluetooth.
 
 ## Parts
 
-Everything you need, with a search term for the web shop and an indicative price (October 2026). The same list in
-Dutch, as a spreadsheet: [`bestellijst.xlsx`](bestellijst.xlsx).
+Everything you need, with a search term for the web shop and an indicative price (October 2026). The full order list
+with totals: [PARTS.md](PARTS.md) (Dutch: [BESTELLIJST.md](BESTELLIJST.md)).
 
 | Part | Qty | Needed | Where it goes | Search term | Price (€) |
 |---|---|---|---|---|---|
