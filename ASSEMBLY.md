@@ -111,6 +111,34 @@ Preferably tap off from a circuit that is switched off with the main switch, or 
 is not on when the boat is left. If you want the monitor always on (for example as a watch in the harbour), tap off
 after the battery switch and leave the fuse in.
 
+### Alternative: behind a breaker on the switch panel
+
+Most switch panels have a thermal circuit breaker per circuit. Bosun can go behind one of those; that is often the
+neatest solution. A breaker protects the **wire**, not the device, so the separate 1 A fuse is only unnecessary if the
+wire to the board can carry the rating of the breaker:
+
+| Breaker on the panel | Minimum wire to the board |
+|---|---|
+| up to 5 A | 0.75–1.0 mm² |
+| 10 A | 1.5 mm² |
+| 15 A or more | 2.5 mm², or still add the 1 A fuse |
+
+```
+ panel breaker (load side) ── [fuse 1 A, only for thin wire] ── red ──► pin 1 VIN
+ panel minus bar ──────────────────────────────────────────── black ──► pin 2 GND
+```
+
+- Preferably use a free circuit of its own, labelled "Bosun". The switch then also turns the screen on and off, and you
+  see right away when the breaker has tripped.
+- Sharing a circuit (for example with the instruments) is fine too: Bosun draws only 0.2–0.3 A.
+- Tap off at the outgoing (load) side of the breaker. Take the minus from the minus bar of the panel, not from a random
+  ground point.
+- If you use a thinner wire than the breaker allows, put the 1 A fuse right behind the panel, where the thin wire
+  starts.
+- Instead of "do not insert the fuse yet" (step 6): leave the breaker off until the first start.
+- Bosun must keep running while the panel is off (watch in the harbour)? Then use an unswitched supply with its own
+  fuse near the battery or main switch, before the panel.
+
 Power from the NMEA 2000 bus (NET-S, red wire) is possible, but only if you know how much current the bus can still
 supply. In that case do not also use the 12 V terminal.
 
