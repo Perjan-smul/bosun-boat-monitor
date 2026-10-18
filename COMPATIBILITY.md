@@ -170,6 +170,6 @@ via a gateway. Replacing old equipment? Choose something with NMEA 2000.
 
 | Part | Board | Note |
 |---|---|---|
-| **BME280** / BMP280 (air pressure) | Waveshare | I2C, address 0x76 or 0x77, found automatically; terminal `VCC GND SDA SCL`, jumper on 3V3 |
+| **BME280** / BMP280 (air pressure), recommended: **DFRobot Gravity BME280 (SEN0236)** | Waveshare | I2C, address 0x76 or 0x77, found automatically; terminal `VCC GND SDA SCL`, jumper on 3V3. The SEN0236 has a locking connector: no soldering, does not shake loose |
 | PCF85063 clock | Waveshare | on the board; **rechargeable RTC cell (ML1220) strongly recommended** on the *RTC* connector, not a CR2032 |
 | micro-SD card | Waveshare | FAT32, up to 32 GB; readings, log and backups |

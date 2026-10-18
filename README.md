@@ -353,7 +353,7 @@ A dedicated **Barometer** page with the air pressure, the trend over 3 hours and
 
 | Source (the first one available) | How |
 |---|---|
-| **BME280 or BMP280 module** (about €5) | on I2C: the terminal `VCC GND SDA SCL` (I2C jumper on **3V3**). Address 0x76 or 0x77, found automatically |
+| **DFRobot Gravity BME280 (SEN0236)** (about €15–20) | on I2C: the terminal `VCC GND SDA SCL` (I2C jumper on **3V3**). Address 0x77 (or 0x76), found automatically. Locking connector on the sensor side, no soldering; see the assembly guide. A loose GY-BME280 or BMP280 also works, but its push-on pins shake loose on a boat |
 | **NMEA 2000** | an instrument that sends air pressure (PGN 130314, 130311 or 130310), e.g. a weather station |
 | **Bluetooth** | a sensor with air pressure: RuuviTag or BTHome |
 
@@ -367,7 +367,7 @@ A dedicated **Barometer** page with the air pressure, the trend over 3 hours and
 - **Storm warning:** if the pressure falls by more than the limit in 3 hours, **orange**; 2 hPa more and it becomes **red**
   (with buzzer). Default 3 hPa (red at 5 hPa); adjustable in ⚙ Settings → *Storm warning*
   (off, 2, 3, 4 or 5 hPa). A rule of thumb: 3 hPa in 3 hours often means strong wind, 5 hPa or more a storm.
-- **Fitting the BME280:** not directly against the warm screen; put a short length of cable in between. At sea the air pressure
+- **Fitting the BME280:** not directly against the warm screen; put a short length of cable in between. Use wire ferrules in the terminal and secure the cable with a cable tie. At sea the air pressure
   on board is the same as at sea level; on a lake at high altitude the value is lower, but the trend is correct.
 - On the micro SD card the air pressure is included in the readings as the column *Barometer hPa*.
 - **On the Overview** the air pressure is shown at the top right with a weather icon like on an old-fashioned barometer:

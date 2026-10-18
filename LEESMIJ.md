@@ -353,7 +353,7 @@ Een eigen pagina **Barometer** met de luchtdruk, de trend over 3 uur en het verl
 
 | Bron (de eerste die er is) | Hoe |
 |---|---|
-| **BME280- of BMP280-module** (± €5) | op I2C: de klem `VCC GND SDA SCL` (jumper I2C op **3V3**). Adres 0x76 of 0x77, vanzelf gevonden |
+| **DFRobot Gravity BME280 (SEN0236)** (± €15–20) | op I2C: de klem `VCC GND SDA SCL` (jumper I2C op **3V3**). Adres 0x77 (of 0x76), vanzelf gevonden. Vergrendelende stekker aan de sensorkant, niets solderen; zie de montagehandleiding. Een losse GY-BME280 of BMP280 werkt ook, maar die heeft schuifpennen die aan boord lostrillen |
 | **NMEA 2000** | een instrument dat luchtdruk stuurt (PGN 130314, 130311 of 130310), bv. een weerstation |
 | **Bluetooth** | een sensor met luchtdruk: RuuviTag of BTHome |
 
@@ -367,7 +367,7 @@ Een eigen pagina **Barometer** met de luchtdruk, de trend over 3 uur en het verl
 - **Stormwaarschuwing:** daalt de druk in 3 uur meer dan de grens, dan **oranje**; 2 hPa meer en het wordt **rood**
   (met zoemer). Standaard 3 hPa (rood bij 5 hPa); in te stellen in ⚙ Instellingen → *Stormwaarschuwing*
   (uit, 2, 3, 4 of 5 hPa). Een vuistregel: 3 hPa in 3 uur betekent vaak harde wind, 5 hPa of meer storm.
-- **BME280 inbouwen:** niet direct tegen het warme scherm; een stukje kabel ernaartussen. Op zee is de luchtdruk
+- **BME280 inbouwen:** niet direct tegen het warme scherm; een stukje kabel ertussen. Zet de draden met adereindhulzen in de klem en de kabel vast met een kabelbinder. Op zee is de luchtdruk
   aan boord gelijk aan die op zeeniveau; op een hoog gelegen meer ligt de waarde lager, maar de trend klopt.
 - Op de micro-SD-kaart komt de luchtdruk als kolom *Barometer hPa* in de metingen.
 - **Op het Overzicht** staat rechtsboven de luchtdruk met een weericoon zoals op een ouderwetse barometer:
