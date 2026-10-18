@@ -6,3 +6,4 @@ __pycache__/
 *.elf
 web/manifest_*.json
 web/firmware/
+enclosure/out/
