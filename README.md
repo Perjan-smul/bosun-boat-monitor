@@ -33,7 +33,7 @@ V4.0 schematic.
 | BTHome v2 (unencrypted) | temperature, humidity, pressure, voltage, current, ... | e.g. Shelly BLU, pvvx in BTHome mode |
 | ThermoBeacon (ORIA, Brifit, SensorBlue) | temperature, humidity, battery | |
 
-The full list, including what does not work (yet) and how to check it yourself: [COMPATIBILITEIT.md](COMPATIBILITEIT.md) (compatibility list, in Dutch).
+The full list, including what does not work (yet) and how to check it yourself: [COMPATIBILITY.md](COMPATIBILITY.md).
 
 **Operation**
 

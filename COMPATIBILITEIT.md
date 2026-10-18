@@ -1,5 +1,7 @@
 # Compatibiliteit
 
+*[English version: COMPATIBILITY.md](COMPATIBILITY.md)*
+
 Welke boards, sensoren en instrumenten werken met Bosun. "Getest" betekent: de decoder is gecontroleerd
 tegen echte pakketten of de open-source referentie (Victron, canboat, Home Assistant, ESPHome). Wat nog niet aan
 boord op echte hardware is gezien, staat erbij.
@@ -20,7 +22,7 @@ boord op echte hardware is gezien, staat erbij.
 
 | Board | Status |
 |---|---|
-| **Waveshare ESP32-S3-Touch-LCD-4** (V3.0 en V4.0) | aanbevolen; alles op het board: CAN, RTC, zoemer, micro-SD |
+| **Waveshare ESP32-S3-Touch-LCD-4** (V3.0 en V4.0) | ondersteund; alles op het board: CAN, RTC, zoemer, micro-SD |
 | LilyGO T-Panel S3 | niet meer ondersteund (alleen de Waveshare) |
 | Waveshare ESP32-S3-Touch-LCD-4**B** | **nee**: geen CAN en geen 12 V-ingang |
 | Guition ESP32-4848S040 | niet meer ondersteund |
