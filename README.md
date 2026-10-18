@@ -502,11 +502,23 @@ alarm with buzzer can be heard from your bunk too.
 - **T-Panel**: **7–24 V** via the 2-pin screw terminal, fused (e.g. 1 A).
 - USB-C is only for flashing and the serial log. The assembly guide has drawings of all connections.
 
+## Installing from the browser
+
+The easiest way: open **[the Bosun installer](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome or Edge on a computer, choose your board, connect it
+with a USB-C data cable and click **Install Bosun**. No software to install and nothing to compile.
+Choose *Erase device* on a first install; do not erase when updating, so your devices, keys and settings stay.
+The same page has the update files (`.bin`) for updating over WiFi.
+
+The page lives in `web/` and is published to GitHub Pages by `.github/workflows/installer.yml`, which builds the
+firmware for both boards on every push to `main`. A tag `v…` also puts the update files on a GitHub release.
+
 ## Building and flashing
 
 With [PlatformIO](https://platformio.org/) (VS Code extension or CLI):
 
 ```bash
+git clone https://github.com/Perjan-smul/bosun-boat-monitor
+cd bosun-boat-monitor
 pio run -t upload                          # Waveshare ESP32-S3-Touch-LCD-4 (default)
 pio run -e t_panel_s3 -t upload            # LilyGO T-Panel S3
 pio device monitor                         # serial log, 115200 baud
@@ -560,6 +572,8 @@ src/glow.c            glowing sparks of the overview (generated with scripts/glo
 src/theme.cpp         colour themes (Ocean, Elegant, Light, Night) and the sun position for day/night
 src/splash.c          startup screen: compass star, name and subtitle in the theme colour (generated with scripts/splash_gen.py)
 src/version.h         firmware version number (startup screen and log)
+web/                  browser installer page (ESP Web Tools), published to GitHub Pages
+scripts/web_manifest.py  writes the installer manifests (version from src/version.h)
 src/quarantine.cpp    disabling a device if the board keeps crashing because of it
 src/ota_guard.cpp     rollback to the previous version on failed starts
 src/sensors.cpp       decoders: Victron (incl. Smart Lithium, BatteryProtect, Lynx), Mopeka Pro, Ruuvi, ATC, BTHome, ThermoBeacon

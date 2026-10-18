@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bosun Installer</title>
+<meta name="description" content="Install Bosun, the boat monitor, on your ESP32-S3 touchscreen straight from the browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Cpath d='M16 3 18.6 13.4 29 16 18.6 18.6 16 29 13.4 18.6 3 16 13.4 13.4Z' fill='%234C8DFF'/%3E%3C/svg%3E">
+<script type="module" src="https://unpkg.com/esp-web-tools@10.1.1/dist/web/install-button.js?module"></script>
+<style>
+  :root {
+    --bg: #000000;
+    --card: #0f1116;
+    --line: #232833;
+    --text: #f4f6fa;
+    --muted: #8c94a3;
+    --accent: #4c8dff;
+    --accent-soft: rgba(76, 141, 255, 0.14);
+    --warn: #f0a04b;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  a { color: var(--accent); }
+  .lang { display: flex; justify-content: flex-end; gap: 4px; }
+  .lang button {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { color: var(--text); border-color: var(--accent); }
+  header { text-align: center; margin: 8px 0 32px; }
+  header img { width: min(360px, 86vw); height: auto; display: block; margin: 0 auto 4px; }
+  .lead { color: var(--muted); max-width: 560px; margin: 20px auto 0; }
+  section {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 24px; margin-top: 20px;
+  }
+  h2 { font-size: 18px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+  .step {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-size: 14px; flex: none;
+  }
+  .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .board {
+    display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid var(--line); cursor: pointer;
+  }
+  .board:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .board input { accent-color: var(--accent); margin-top: 4px; }
+  .board strong { display: block; font-weight: 600; }
+  .board span { color: var(--muted); font-size: 14px; }
+  .install { text-align: center; padding: 8px 0 4px; }
+  esp-web-install-button button[slot="activate"] {
+    background: var(--accent); color: #000; border: 0; border-radius: 999px;
+    padding: 14px 32px; font: inherit; font-weight: 600; font-size: 17px; cursor: pointer;
+  }
+  esp-web-install-button button[slot="activate"]:hover { filter: brightness(1.1); }
+  .note { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
+  .warn {
+    border-left: 3px solid var(--warn); padding: 10px 14px; background: rgba(240, 160, 75, 0.08);
+    border-radius: 6px; color: var(--text); font-size: 15px;
+  }
+  ul, ol { padding-left: 22px; margin: 0; }
+  li { margin: 6px 0; }
+  li::marker { color: var(--muted); }
+  .downloads { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .downloads a {
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; text-decoration: none; font-size: 15px;
+  }
+  .downloads a:hover { border-color: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: 14px; margin-top: 36px; }
+  [data-lang]:not(.on) { display: none; }
+  .version { color: var(--muted); font-size: 14px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* Meldingen van de installatieknop pas tonen als die geladen is (die kiest er dan zelf één) */
+  esp-web-install-button:not(:defined) [slot="unsupported"],
+  esp-web-install-button:not(:defined) [slot="not-allowed"] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-set="en" aria-pressed="true">English</button>
+    <button type="button" data-set="nl" aria-pressed="false">Nederlands</button>
+  </div>
+
+  <header>
+    <img src="splash.png" width="480" height="480" alt="">
+    <h1 class="sr-only">Bosun – the boat monitor</h1>
+    <p class="lead">
+      <span data-lang="en">Install Bosun on your ESP32-S3 touchscreen straight from this page. No software to install, no compiling.</span>
+      <span data-lang="nl">Zet Bosun rechtstreeks vanaf deze pagina op je ESP32-S3-touchscreen. Niets installeren, niets compileren.</span>
+    </p>
+    <p class="version" id="version"></p>
+  </header>
+
+  <section>
+    <h2><span class="step">1</span>
+      <span data-lang="en">Choose your board</span><span data-lang="nl">Kies je board</span></h2>
+    <div class="boards">
+      <label class="board">
+        <input type="radio" name="board" value="waveshare_4" checked>
+        <div><strong>Waveshare ESP32-S3-Touch-LCD-4</strong>
+          <span data-lang="en">Recommended. NMEA 2000, clock and buzzer on the board.</span>
+          <span data-lang="nl">Aanbevolen. NMEA 2000, klok en zoemer op het board.</span></div>
+      </label>
+      <label class="board">
+        <input type="radio" name="board" value="t_panel_s3">
+        <div><strong>LilyGO T-Panel S3</strong>
+          <span data-lang="en">NMEA 2000 only on the CAN version (H720).</span>
+          <span data-lang="nl">NMEA 2000 alleen bij de CAN-versie (H720).</span></div>
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">2</span>
+      <span data-lang="en">Connect and install</span><span data-lang="nl">Aansluiten en installeren</span></h2>
+    <ol>
+      <li data-lang="en">Connect the board to this computer with a USB-C cable that carries data (not a charge-only cable).</li>
+      <li data-lang="nl">Sluit het board met een USB-C-kabel aan op deze computer. Gebruik een kabel voor data, geen laadkabel.</li>
+      <li data-lang="en">Click <strong>Install Bosun</strong>, pick the port (usually "USB JTAG/serial debug unit") and confirm.</li>
+      <li data-lang="nl">Klik op <strong>Bosun installeren</strong>, kies de poort (meestal "USB JTAG/serial debug unit") en bevestig.</li>
+      <li data-lang="en">Wait until it says the installation is complete (about 1 to 2 minutes), then press the reset button or unplug and replug the board.</li>
+      <li data-lang="nl">Wacht tot er staat dat de installatie klaar is (1 à 2 minuten). Druk daarna op de resetknop, of haal de kabel eruit en sluit hem opnieuw aan.</li>
+    </ol>
+    <div class="install">
+      <p class="note" style="margin-bottom:18px">
+        <span data-lang="en">Works in Chrome or Edge on a computer (Windows, macOS, Linux, ChromeOS). Not on phones or in Safari and Firefox.</span>
+        <span data-lang="nl">Werkt in Chrome of Edge op een computer (Windows, macOS, Linux, ChromeOS). Niet op telefoons en niet in Safari of Firefox.</span>
+      </p>
+      <esp-web-install-button id="installer" manifest="manifest_waveshare_4.json">
+        <button slot="activate"><span data-lang="en">Install Bosun</span><span data-lang="nl">Bosun installeren</span></button>
+        <span slot="unsupported" class="warn" style="display:inline-block">
+          <span data-lang="en">This browser cannot talk to USB devices. Open this page in Chrome or Edge on a computer.</span>
+          <span data-lang="nl">Deze browser kan niet met USB-apparaten praten. Open deze pagina in Chrome of Edge op een computer.</span>
+        </span>
+        <span slot="not-allowed" class="warn" style="display:inline-block">
+          <span data-lang="en">Installing needs a secure connection (https).</span>
+          <span data-lang="nl">Installeren kan alleen via een beveiligde verbinding (https).</span>
+        </span>
+      </esp-web-install-button>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">?</span>
+      <span data-lang="en">Good to know</span><span data-lang="nl">Goed om te weten</span></h2>
+    <ul>
+      <li data-lang="en"><strong>First install:</strong> choose <em>Erase device</em> when asked. Bosun then starts with a clean memory and asks for your language.</li>
+      <li data-lang="nl"><strong>Eerste keer:</strong> kies <em>Erase device</em> als daarom gevraagd wordt. Bosun begint dan met een schoon geheugen en vraagt om je taal.</li>
+      <li data-lang="en"><strong>Updating:</strong> do <em>not</em> erase. Your devices, Victron keys and settings stay. Updating over WiFi through Bosun's own web page also works (see below).</li>
+      <li data-lang="nl"><strong>Bijwerken:</strong> wis het geheugen <em>niet</em>. Je apparaten, Victron-sleutels en instellingen blijven dan staan. Bijwerken via wifi met de eigen webpagina van Bosun kan ook (zie hieronder).</li>
+      <li data-lang="en"><strong>No port shown?</strong> Hold the <strong>BOOT</strong> button, press and release <strong>RESET</strong> (or plug in the cable), then release BOOT and try again.</li>
+      <li data-lang="nl"><strong>Geen poort te zien?</strong> Houd de knop <strong>BOOT</strong> ingedrukt, druk kort op <strong>RESET</strong> (of steek de kabel erin) en laat BOOT dan los. Probeer het daarna opnieuw.</li>
+      <li data-lang="en"><strong>Make a backup first</strong> if Bosun already runs: WiFi page → <em>Settings backup</em>.</li>
+      <li data-lang="nl"><strong>Maak eerst een backup</strong> als Bosun al draait: wifi-pagina → <em>Backup van de instellingen</em>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="step">↻</span>
+      <span data-lang="en">Update over WiFi</span><span data-lang="nl">Bijwerken via wifi</span></h2>
+    <p style="margin:0">
+      <span data-lang="en">Download the update file for your board, turn on the WiFi page on the screen and upload it under <em>Firmware update</em>. The board checks that the file belongs to it.</span>
+      <span data-lang="nl">Download het updatebestand voor je board, zet op het scherm de wifi-pagina aan en upload het bij <em>Firmware-update</em>. Het board controleert of het bestand bij hem hoort.</span>
+    </p>
+    <div class="downloads">
+      <a href="firmware/waveshare_4/firmware.bin" download="bosun-waveshare_4.bin">Waveshare (.bin)</a>
+      <a href="firmware/t_panel_s3/firmware.bin" download="bosun-t_panel_s3.bin">T-Panel S3 (.bin)</a>
+    </div>
+  </section>
+
+  <footer>
+    <span data-lang="en">Source code, manual and compatibility list on</span>
+    <span data-lang="nl">Broncode, handleiding en compatibiliteitslijst op</span>
+    <a href="https://github.com/Perjan-smul/bosun-boat-monitor">GitHub</a>.
+    <span data-lang="en">MIT licence, no warranty.</span>
+    <span data-lang="nl">MIT-licentie, zonder garantie.</span>
+  </footer>
+</main>
+
+<script>
+  // Taal: Nederlands als de browser Nederlands is, anders Engels; de keuze wordt onthouden
+  const installer = document.getElementById("installer");
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-lang]").forEach(el => el.classList.toggle("on", el.dataset.lang === lang));
+    document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.set === lang));
+    try { localStorage.setItem("bosun-lang", lang); } catch (e) {}
+  }
+  let saved = null;
+  try { saved = localStorage.getItem("bosun-lang"); } catch (e) {}
+  setLang(saved || ((navigator.language || "").toLowerCase().startsWith("nl") ? "nl" : "en"));
+  document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.set)));
+
+  // Board: de installatieknop wijst naar het manifest van dat board
+  document.querySelectorAll('input[name="board"]').forEach(r =>
+    r.addEventListener("change", () => { installer.manifest = `manifest_${r.value}.json`; }));
+
+  // Versie uit het manifest tonen
+  fetch("manifest_waveshare_4.json").then(r => r.json()).then(m => {
+    document.getElementById("version").textContent = "Version " + m.version;
+  }).catch(() => {});
+</script>
+</body>
+</html>

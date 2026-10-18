@@ -1,0 +1,91 @@
+# Bouwt de firmware voor beide boards en zet de installatiepagina (web/) op GitHub Pages.
+# Bij een tag v* komen de updatebestanden ook bij een release op GitHub.
+name: Firmware and web installer
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # release bij een tag
+  pages: write
+  id-token: write
+
+concurrency:
+  group: installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [waveshare_4, t_panel_s3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ matrix.env }}-${{ hashFiles('platformio.ini') }}
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+      - name: Build
+        run: pio run -e ${{ matrix.env }}
+      - name: Collect firmware parts
+        run: |
+          out=firmware/${{ matrix.env }}
+          mkdir -p $out
+          cp .pio/build/${{ matrix.env }}/{bootloader,partitions,firmware}.bin $out/
+          cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin $out/
+          ls -l $out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.env }}
+          path: firmware/
+
+  pages:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          merge-multiple: true
+          path: web/firmware
+      - name: Manifests
+        run: python3 scripts/web_manifest.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          merge-multiple: true
+          path: firmware
+      - name: Name the update files
+        run: |
+          for b in waveshare_4 t_panel_s3; do cp firmware/$b/firmware.bin bosun-${{ github.ref_name }}-$b.bin; done
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: bosun-*.bin
+          generate_release_notes: true

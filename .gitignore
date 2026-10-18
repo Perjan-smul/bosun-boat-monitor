@@ -4,3 +4,5 @@ build/
 __pycache__/
 *.bin
 *.elf
+web/manifest_*.json
+web/firmware/

@@ -502,11 +502,23 @@ alarm met zoemer is ook in de kooi te horen.
 - **T-Panel**: **7–24 V** via de 2-polige schroefklem, gezekerd (bv. 1 A).
 - USB-C is alleen voor flashen en de seriële log. De montagehandleiding heeft tekeningen van alle aansluitingen.
 
+## Installeren vanuit de browser
+
+De makkelijkste manier: open **[de Bosun-installatiepagina](https://perjan-smul.github.io/bosun-boat-monitor/)** in Chrome of Edge op een computer, kies je board,
+sluit het aan met een USB-C-kabel voor data en klik op **Bosun installeren**. Niets installeren, niets compileren.
+Kies bij de eerste installatie *Erase device*; wis bij een update niet, dan blijven je apparaten, sleutels en
+instellingen staan. Op dezelfde pagina staan de updatebestanden (`.bin`) om via wifi bij te werken.
+
+De pagina staat in `web/` en komt via `.github/workflows/installer.yml` op GitHub Pages; die bouwt bij elke push
+naar `main` de firmware voor beide boards. Bij een tag `v…` komen de updatebestanden ook bij een release op GitHub.
+
 ## Bouwen en flashen
 
 Met [PlatformIO](https://platformio.org/) (VS Code-extensie of CLI):
 
 ```bash
+git clone https://github.com/Perjan-smul/bosun-boat-monitor
+cd bosun-boat-monitor
 pio run -t upload                          # Waveshare ESP32-S3-Touch-LCD-4 (standaard)
 pio run -e t_panel_s3 -t upload            # LilyGO T-Panel S3
 pio device monitor                         # seriële log, 115200 baud
@@ -560,6 +572,8 @@ src/glow.c            gloeiende sterretjes van het overzicht (gemaakt met script
 src/theme.cpp         kleurthema's (Oceaan, Elegant, Licht, Nacht) en de zonnestand voor dag/nacht
 src/splash.c          opstartscherm: kompasster, naam en ondertitel in de themakleur (gemaakt met scripts/splash_gen.py)
 src/version.h         versienummer van de firmware (opstartscherm en logboek)
+web/                  installatiepagina voor de browser (ESP Web Tools), komt op GitHub Pages
+scripts/web_manifest.py  maakt de manifesten voor de installatiepagina (versie uit src/version.h)
 src/quarantine.cpp    apparaat uitschakelen als het board er steeds door crasht
 src/ota_guard.cpp     terugval naar de vorige versie bij mislukte starts
 src/sensors.cpp       decoders: Victron (incl. Smart Lithium, BatteryProtect, Lynx), Mopeka Pro, Ruuvi, ATC, BTHome, ThermoBeacon
