@@ -169,6 +169,5 @@ via een gateway. Ga je oude apparatuur vervangen, kies dan iets met NMEA 2000.
 | Onderdeel | Board | Opmerking |
 |---|---|---|
 | **BME280** / BMP280 (luchtdruk) | Waveshare | I2C, adres 0x76 of 0x77, vanzelf gevonden; klem `VCC GND SDA SCL`, jumper op 3V3 |
-| PCF85063-klok | Waveshare | op het board; oplaadbare cel (ML1220) op de aansluiting *RTC*, geen CR2032 |
-| DS3231-klokmodule (optioneel) | Waveshare | I2C 0x68, gewone CR2032; gaat voor de klok op het board |
+| PCF85063-klok | Waveshare | op het board; **oplaadbare RTC-cel (ML1220) sterk aangeraden** op de aansluiting *RTC*, geen CR2032 |
 | micro-SD-kaart | Waveshare | FAT32, tot 32 GB; metingen, logboek en backups |

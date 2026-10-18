@@ -431,24 +431,20 @@ Systems differ, which is why it is strict:
   If Bosun follows the plotter, it follows that error too; in that case choose *Own time*.
 - *Clock from GPS* off = also take nothing from the plotter.
 
-The clock chip (PCF85063, address 0x51) is on the board and needs a **rechargeable RTC cell** on the
+**Order the RTC cell too: strongly recommended.** The clock chip (PCF85063, address 0x51) is on the board, but only keeps
+the time with a **rechargeable RTC cell** on the
 2-pin connector printed **RTC** (next to the DIP switch; BAT1 on the schematic), available as an option from Waveshare
 or as an ML1220 with wires. The **BAT** connector at the top is for a Li-ion battery, not for the clock. The board charges that cell
 via a diode from 3.3 V: so do **not use an ordinary CR2032**. Without a cell the time is lost after every power cut, until
 you set it again or the GPS time comes in.
 
-Prefer an ordinary CR2032? Then connect a **DS3231 RTC module** (about €3) to the I2C terminal (`VCC GND SDA SCL`).
-It is found automatically (address 0x68) and then takes priority over the clock chip on the board.
 - **Setting**: once, via ⚙ Settings → *Set* (scroll wheels for date and time). Dutch time;
   summer and winter time change automatically.
-- **Kept**: the RTC keeps the time for years, even without power. Accurate to about 1 minute per year.
+- **Kept**: with the cell the time is kept, even without power; the board recharges the cell.
 - **Clock** in the header bar of the dashboard.
-- **Coin cell flat**: the settings page then shows in orange *"RTC battery flat? Set the time again"*.
-- **Without RTC**: you can still set the time, but it is lost on a power cut.
-
-> Note: many cheap DS3231 modules (ZS-042) have a charging circuit for a rechargeable LIR2032.
-> If you use an ordinary **CR2032**, remove the diode or the 200 Ω resistor next to the battery holder.
-> Otherwise the module tries to charge the non-rechargeable cell.
+- **Cell flat or missing**: the settings page then shows in orange *"RTC battery flat? Set the time again"*.
+- **Without the cell**: you can still set the time, but it is lost on a power cut (until the GPS time comes in).
+  History and log times after a restart are then wrong too.
 
 ## Memory
 
@@ -542,7 +538,7 @@ src/bme280.cpp        BME280/BMP280 air pressure sensor on I2C (calculations acc
 src/sdcard.cpp        micro SD card: readings (CSV), log and backups, cleaning up when it gets full
 src/datalog.cpp       columns and lines of the CSV files (testable on its own)
 src/history.cpp       history: blocks aligned to the clock, ring buffers 24 h / 7 d, daily yield, storage on flash
-src/clock.cpp         RTC (DS3231 or PCF85063), own time or time from the plotter, setting the time
+src/clock.cpp         RTC (PCF85063), own time or time from the plotter, setting the time
 src/ota.cpp           WiFi page and firmware update: web server, pairing code, confirmation
 src/webkeys.cpp       WiFi page: entering Victron keys and adding devices
 src/webdiag.cpp       WiFi page: diagnostics, log, backup and restore

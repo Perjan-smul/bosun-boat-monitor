@@ -431,24 +431,20 @@ Systemen verschillen, daarom is het streng:
   Volgt Bosun de plotter, dan ook in die fout; kies dan *Eigen tijd*.
 - *Klok via GPS* uit = ook niets van de plotter overnemen.
 
-De klokchip (PCF85063, adres 0x51) zit op het board en heeft een **oplaadbare RTC-cel** nodig op de
+**Bestel de RTC-cel mee: sterk aangeraden.** De klokchip (PCF85063, adres 0x51) zit op het board, maar houdt de tijd
+alleen vast met een **oplaadbare RTC-cel** op de
 2-polige aansluiting met de opdruk **RTC** (naast de DIP-schakelaar; BAT1 op het schema), als optie bij Waveshare
 te bestellen of als ML1220 met draadjes. De aansluiting **BAT** bovenaan is voor een Li-ion-accu, niet voor de klok. Het board laadt die cel
 via een diode vanaf 3,3 V: gebruik dus **geen gewone CR2032**. Zonder cel is de tijd na elke stroomuitval weg, tot
 je hem opnieuw instelt of de GPS-tijd binnenkomt.
 
-Liever een gewone CR2032? Sluit dan een **DS3231-RTC-module** (± €3) aan op de I2C-klem (`VCC GND SDA SCL`).
-Die wordt automatisch gevonden (adres 0x68) en gaat dan voor de klokchip op het board.
 - **Instellen**: eenmalig via ⚙ Instellingen → *Instellen* (draaiwieltjes voor datum en tijd). Nederlandse tijd;
   zomer- en wintertijd gaan vanzelf.
-- **Bewaard**: de RTC bewaart de tijd jarenlang, ook zonder stroom. Nauwkeurig tot ± 1 minuut per jaar.
+- **Bewaard**: met de cel blijft de tijd staan, ook zonder stroom; het board laadt de cel weer bij.
 - **Klok** in de kopbalk van het dashboard.
-- **Knoopcel leeg**: dan meldt de instellingenpagina in oranje *"RTC-batterij leeg? Stel de tijd opnieuw in"*.
-- **Zonder RTC**: de tijd instellen kan ook, maar hij gaat verloren bij een stroomuitval.
-
-> Let op: veel goedkope DS3231-modules (ZS-042) hebben een laadcircuit voor een oplaadbare LIR2032.
-> Gebruik je een gewone **CR2032**, verwijder dan de diode of de 200 Ω-weerstand naast de batterijhouder.
-> Anders probeert de module de niet-oplaadbare cel te laden.
+- **Cel leeg of afwezig**: dan meldt de instellingenpagina in oranje *"RTC-batterij leeg? Stel de tijd opnieuw in"*.
+- **Zonder cel**: de tijd instellen kan ook, maar hij gaat verloren bij een stroomuitval (tot de GPS-tijd binnenkomt).
+  Dan kloppen ook de historie en het logboek na een herstart niet.
 
 ## Geheugen
 
@@ -542,7 +538,7 @@ src/bme280.cpp        BME280/BMP280-luchtdruksensor op I2C (rekenwerk volgens de
 src/sdcard.cpp        micro-SD-kaart: metingen (CSV), logboek en backups, opruimen als hij vol raakt
 src/datalog.cpp       kolommen en regels van de CSV-bestanden (los te testen)
 src/history.cpp       historie: blokken op de klok, ringbuffers 24 u / 7 d, dagopbrengst, opslag op flash
-src/clock.cpp         RTC (DS3231 of PCF85063), eigen tijd of tijd van de plotter, tijd instellen
+src/clock.cpp         RTC (PCF85063), eigen tijd of tijd van de plotter, tijd instellen
 src/ota.cpp           wifi-pagina en firmware-update: webserver, pairingcode, bevestigen
 src/webkeys.cpp       wifi-pagina: Victron-sleutels invoeren en apparaten toevoegen
 src/webdiag.cpp       wifi-pagina: diagnose, logboek, backup en terugzetten
