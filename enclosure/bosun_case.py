@@ -5,16 +5,18 @@ Twee versies met dezelfde achterplaat:
   - opbouw: complete doos tegen een wand (achterplaat met sleutelgaten)
   - inbouw: alleen een afgeronde rand zichtbaar, de doos zit achter een zaaggat in het schot
 
-Alle maten in mm. De maten van het board hieronder zijn VOORLOPIG: meet ze na op je eigen board
-(zie de README in deze map) en draai daarna:  python3 enclosure/bosun_case.py
+Alle maten in mm. Breedte en hoogte van het board komen van Waveshare; dikte, hoekradius en de plaats
+van de USB-C zijn geschat: meet ze na op je eigen board (zie de README in deze map) en draai daarna:  python3 enclosure/bosun_case.py
 Uitvoer: STL's om te printen en een STEP-bestand om verder te bewerken, in enclosure/out/.
 """
 import os
 import cadquery as cq
 
-# ---------- Board (VOORLOPIG, nameten) ----------
-BOARD_W = 102.0      # breedte van board + glas
-BOARD_H = 102.0      # hoogte van board + glas
+# ---------- Board ----------
+# Buitenmaat volgens de productpagina van Waveshare (touchversie): 84,2 x 84,2 mm.
+# Dikte, hoekradius en de plaats van de USB-C zijn nog geschat: meet ze na op je eigen board.
+BOARD_W = 84.2       # breedte van board + glas
+BOARD_H = 84.2       # hoogte van board + glas
 BOARD_R = 3.0        # hoekradius van board/glas
 STACK = 13.0         # dikte van glas tot achterkant hoogste onderdeel (schroefklemmen)
 VIEW_DY = 0.0        # verschuiving van de opening t.o.v. het midden (+ = omhoog)
@@ -34,9 +36,9 @@ R_OPEN = 1.5         # afronding van de beeldopening
 PLATE_T = 2.4        # achterplaat
 FLANGE = 10.0        # rand rondom bij inbouw
 FLANGE_T = 4.0
-CABLE_W = 64.0       # grote kabelopening in de achterplaat: de doorvoer in de wand hoeft niet precies
-CABLE_H = 38.0       # mee te vallen (handig bij een bestaand gat van een oud scherm)
-CABLE_Y = -12.0      # midden van de opening (+ = omhoog)
+CABLE_W = 52.0       # grote kabelopening in de achterplaat: de doorvoer in de wand hoeft niet precies
+CABLE_H = 30.0       # mee te vallen (handig bij een bestaand gat van een oud scherm)
+CABLE_Y = -10.0      # midden van de opening (+ = omhoog)
 SCREW_PILOT = 2.5    # M3 zelftappend in de bussen
 SCREW_HOLE = 3.4     # M3 door de achterplaat
 
@@ -96,9 +98,9 @@ def back_plate(depth, keyholes=True):
             .extrude(PLATE_T + 2).edges("|Z").fillet(8.0))
     p = p.cut(hole)
     if keyholes:
-        for x in (-30, 30):
-            key = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 22).circle(4.2).extrude(PLATE_T + 2)
-            slot = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 26).slot2D(12, 4.4, 90).extrude(PLATE_T + 2)
+        for x in (-24, 24):
+            key = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 17).circle(4.2).extrude(PLATE_T + 2)
+            slot = cq.Workplane("XY").workplane(offset=depth - PLATE_T - 1).center(x, 21).slot2D(12, 4.4, 90).extrude(PLATE_T + 2)
             p = p.cut(key).cut(slot)
     # Naam in de achterkant gegraveerd
     txt = (cq.Workplane("XY").workplane(offset=depth - 0.6).center(0, CABLE_Y - CABLE_H / 2 - 9)

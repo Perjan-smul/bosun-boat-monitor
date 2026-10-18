@@ -4,8 +4,9 @@ Parametric 3D-printable enclosure for the Waveshare ESP32-S3-Touch-LCD-4, made w
 [CadQuery](https://cadquery.readthedocs.io/): a **surface-mount** box (wall, keyhole slots) and a
 **flush-mount** version (only a rounded flange shows in front of the panel cut-out).
 
-> The board dimensions in `bosun_case.py` are still **provisional** (102 × 102 mm). Measure your board and
-> adjust the values at the top of the script before printing.
+> Width and height of the board (84.2 × 84.2 mm) come from Waveshare's product page. Thickness, corner radius
+> and the USB-C position are still estimates: measure your board and adjust the values at the top of
+> `bosun_case.py` before printing.
 
 ```bash
 pip install cadquery
