@@ -207,16 +207,20 @@ ParseResult parseVictron(SensorType t, const AdvData &adv, const uint8_t *key, R
     case SensorType::VictronDcDc: {
       uint8_t state = b.u(8);
       uint8_t err = b.u(8);
-      float vin = b.u(16) * 0.01f;
-      float vout = b.s(16) * 0.01f;
+      uint32_t rawIn = b.u(16);
+      int32_t rawOut = b.s(16);
+      // Niet beschikbaar (victron-ble): 0xFFFF ingang, 0x7FFF uitgang (bv. uit omdat de motor stilstaat)
+      float vin = rawIn == 0xFFFF ? NAN : rawIn * 0.01f;
+      float vout = rawOut == 0x7FFF ? NAN : rawOut * 0.01f;
       r.m.state = state;
-      r.m.error = err;
+      r.m.error = err != 0xFF ? err : 0;
       r.m.volts = vout;
-      primary(r, "%.2f V", vout);
+      if (!isnan(vout)) primary(r, "%.2f V", vout);
+      else primary(r, "--");
       add(r, TN("Status"), "%s", victronStateName(state));
-      add(r, TN("Ingang"), "%.2f V", vin);
-      add(r, TN("Uitgang"), "%.2f V", vout);
-      if (err) add(r, TN("Fout"), "%u %s", err, victronErrorName(err));
+      if (!isnan(vin)) add(r, TN("Ingang"), "%.2f V", vin);
+      if (!isnan(vout)) add(r, TN("Uitgang"), "%.2f V", vout);
+      if (r.m.error) add(r, TN("Fout"), "%u %s", r.m.error, victronErrorName(r.m.error));
       return ParseResult::Ok;
     }
     case SensorType::VictronBatteryProtect: {
