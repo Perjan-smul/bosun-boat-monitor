@@ -35,6 +35,8 @@ jobs:
             ~/.platformio
             ~/.cache/pip
           key: pio-${{ matrix.env }}-${{ hashFiles('platformio.ini') }}
+      - name: Decoder tests
+        run: make -C test/host
       - name: Install PlatformIO
         run: pip install --upgrade platformio
       - name: Build

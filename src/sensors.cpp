@@ -207,16 +207,20 @@ ParseResult parseVictron(SensorType t, const AdvData &adv, const uint8_t *key, R
     case SensorType::VictronDcDc: {
       uint8_t state = b.u(8);
       uint8_t err = b.u(8);
-      float vin = b.u(16) * 0.01f;
-      float vout = b.s(16) * 0.01f;
+      uint32_t rawIn = b.u(16);
+      int32_t rawOut = b.s(16);
+      // Niet beschikbaar (victron-ble): 0xFFFF ingang, 0x7FFF uitgang (bv. uit omdat de motor stilstaat)
+      float vin = rawIn == 0xFFFF ? NAN : rawIn * 0.01f;
+      float vout = rawOut == 0x7FFF ? NAN : rawOut * 0.01f;
       r.m.state = state;
-      r.m.error = err;
+      r.m.error = err != 0xFF ? err : 0;
       r.m.volts = vout;
-      primary(r, "%.2f V", vout);
+      if (!isnan(vout)) primary(r, "%.2f V", vout);
+      else primary(r, "--");
       add(r, TN("Status"), "%s", victronStateName(state));
-      add(r, TN("Ingang"), "%.2f V", vin);
-      add(r, TN("Uitgang"), "%.2f V", vout);
-      if (err) add(r, TN("Fout"), "%u %s", err, victronErrorName(err));
+      if (!isnan(vin)) add(r, TN("Ingang"), "%.2f V", vin);
+      if (!isnan(vout)) add(r, TN("Uitgang"), "%.2f V", vout);
+      if (r.m.error) add(r, TN("Fout"), "%u %s", r.m.error, victronErrorName(r.m.error));
       return ParseResult::Ok;
     }
     case SensorType::VictronBatteryProtect: {
@@ -517,7 +521,32 @@ const BtHomeObj BTHOME_OBJS[] = {
   {0x43, 2, false, 0.001f, TN("Stroom"), "%.2f A"},
   {0x45, 2, true, 0.1f, TN("Temperatuur"), "%.1f °C"},
   {0x4A, 2, false, 0.1f, TN("Spanning"), "%.1f V"},
+  {0x57, 1, true, 1, TN("Temperatuur"), "%.0f °C"},
+  {0x58, 1, true, 0.35f, TN("Temperatuur"), "%.1f °C"},
+  {0x5C, 4, true, 0.01f, TN("Vermogen"), "%.0f W"},
+  {0x5D, 2, true, 0.001f, TN("Stroom"), "%.2f A"},
 };
+
+// Lengte van een BTHome-object dat we niet tonen (volgens bthome-ble), zodat de objecten erna nog gelezen
+// worden: een knop (0x3A) komt bv. vóór de temperatuur (0x45). -1 = onbekend.
+int btHomeSkip(uint8_t id, const uint8_t *d, size_t left) {
+  if (id == 0x3B) return left ? 1 + 1 + (d[0] & 0x1F) : -1;  // commando: lengtebyte, opcode, argumenten
+  if (id == 0x53 || id == 0x54) return left ? 1 + d[0] : -1;  // tekst, ruwe data: lengtebyte + inhoud
+  static const uint8_t len2[] = {0x06, 0x07, 0x0D, 0x0E, 0x12, 0x13, 0x3C, 0x3D, 0x40, 0x41, 0x44, 0x47, 0x48,
+                                 0x49, 0x51, 0x52, 0x56, 0x5A, 0x5E, 0x5F, 0x61, 0xF0};
+  static const uint8_t len3[] = {0x42, 0x4B, 0xF2};
+  static const uint8_t len4[] = {0x3E, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x55, 0x5B, 0x62, 0x63, 0xF1};
+  for (uint8_t x : len2)
+    if (x == id) return 2;
+  for (uint8_t x : len3)
+    if (x == id) return 3;
+  for (uint8_t x : len4)
+    if (x == id) return 4;
+  if (id == 0x09 || (id >= 0x0F && id <= 0x2D) || id == 0x3A || id == 0x46 || id == 0x59 || id == 0x60 ||
+      id == 0x64 || id == 0x65)
+    return 1;
+  return -1;
+}
 
 ParseResult parseBtHome(const AdvData &adv, Reading &r) {
   const uint8_t *d = adv.bthome;
@@ -530,21 +559,22 @@ ParseResult parseBtHome(const AdvData &adv, Reading &r) {
     for (const auto &o : BTHOME_OBJS)
       if (o.id == id) obj = &o;
     if (!obj) {
-      if (id == 0x12 || id == 0x13) { i += 2; continue; }  // CO2 en TVOC: 2 bytes, overslaan
-      if (id >= 0x0F && id <= 0x2D) { i += 1; continue; }  // binaire sensoren: 1 byte, overslaan
-      break;                                               // onbekend object: lengte onbekend
+      int skip = btHomeSkip(id, d + i, n - i);
+      if (skip < 0) break;  // onbekend object: lengte onbekend
+      i += skip;
+      continue;
     }
     if (i + obj->len > n) break;
-    int32_t raw = 0;
-    for (int k = 0; k < obj->len; k++) raw |= (int32_t)d[i + k] << (8 * k);
-    if (obj->isSigned && (raw & (1L << (8 * obj->len - 1)))) raw -= 1L << (8 * obj->len);
+    int64_t raw = 0;
+    for (int k = 0; k < obj->len; k++) raw |= (int64_t)d[i + k] << (8 * k);
+    if (obj->isSigned && (raw & (1LL << (8 * obj->len - 1)))) raw -= 1LL << (8 * obj->len);
     i += obj->len;
     if (!obj->label) continue;
     float v = raw * obj->factor;
-    if (id == 0x02 || id == 0x45) r.m.tempC = v;
+    if (id == 0x02 || id == 0x45 || id == 0x57 || id == 0x58) r.m.tempC = v;
     if (id == 0x03 || id == 0x2E) r.m.humidity = v;
     if (id == 0x0C || id == 0x4A) r.m.volts = v;
-    if (id == 0x43) r.m.amps = v;
+    if (id == 0x43 || id == 0x5D) r.m.amps = v;
     if (id == 0x04) r.m.pressureHpa = v;
     if (r.primary[0] == 0) primary(r, obj->fmt, v);
     add(r, obj->label, obj->fmt, v);

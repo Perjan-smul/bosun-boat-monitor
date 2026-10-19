@@ -23,6 +23,9 @@ float fu32(const uint8_t *p, float res) { uint32_t v = u32(p); return v >= 0xFFF
 
 float degNorm(float d) { return isnan(d) ? NAN : fmodf(d + 360.0f, 360.0f); }
 
+// Positie binnen het bereik (een verminkte boodschap kan bv. lengte -198 geven)
+bool validPos(double lat, double lon) { return fabs(lat) <= 90 && fabs(lon) <= 180; }
+
 }  // namespace
 
 uint32_t n2kPgnFromId(uint32_t id) {
@@ -203,7 +206,7 @@ void N2kDecoder::onMessage(uint32_t pgn, uint8_t src, const uint8_t *d, int len,
         decoded++;
       }
       int64_t la = i64(d + 7), lo = i64(d + 15);
-      if (la != INT64_MAX && lo != INT64_MAX) {
+      if (la != INT64_MAX && lo != INT64_MAX && validPos(la * 1e-16, lo * 1e-16)) {
         s.lat = la * 1e-16;
         s.lon = lo * 1e-16;
         s.posMs = now;
@@ -214,6 +217,7 @@ void N2kDecoder::onMessage(uint32_t pgn, uint8_t src, const uint8_t *d, int len,
     }
     case 129025: {  // positie, snel
       if (len < 8 || i32(d) == 0x7FFFFFFF || i32(d + 4) == 0x7FFFFFFF) break;
+      if (!validPos(i32(d) * 1e-7, i32(d + 4) * 1e-7)) break;
       s.lat = i32(d) * 1e-7;
       s.lon = i32(d + 4) * 1e-7;
       s.posMs = now;
@@ -324,7 +328,7 @@ void N2kDecoder::onMessage(uint32_t pgn, uint8_t src, const uint8_t *d, int len,
       float c;
       if (pgn == 130312) c = fu16(d + 3, 0.01f) - KELVIN;
       else c = u24(d + 3) >= 0xFFFFFD ? NAN : u24(d + 3) * 0.001f - KELVIN;
-      if (isnan(c)) break;
+      if (isnan(c) || c < 200 - KELVIN) break;  // 0 K (bv. NAC-3 zonder watertemperatuursensor) = niet gemeten
       N2kTemp *t = nullptr;
       for (auto &x : s.temps)
         if (x.ms && x.source == source && x.instance == inst) t = &x;
