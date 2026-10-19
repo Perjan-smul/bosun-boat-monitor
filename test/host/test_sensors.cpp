@@ -312,6 +312,7 @@ TEST(victron_dc_meter) {
   CHECK_STR(value(r, "Startaccu"), "-0.01 V");
   CHECK_EQ(r.m.alarm, 0);
   CHECK(isnan(r.m.tempC));
+  CHECK_EQ(r.m.meterType, -3);  // DC-DC-lader
   r = victronPlain(0x0D, "fdffe4040000ffff020000ae28af8a5c");
   CHECK(isnan(r.m.tempC));
   CHECK(!value(r, "Temperatuur"));
@@ -319,6 +320,7 @@ TEST(victron_dc_meter) {
   CHECK_NEAR(r.m.tempC, 76.37, 0.01);
   r = victronPlain(0x0D, "ffff6f0a0000000003000043698118eb");
   CHECK_NEAR(r.m.volts, 26.71, 0.001);
+  CHECK_EQ(r.m.meterType, -1);  // algemene bron
   CHECK(!value(r, "Startaccu"));
   CHECK(!value(r, "Temperatuur"));
 }
