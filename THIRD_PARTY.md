@@ -29,6 +29,20 @@ using the field layouts, scaling factors and coefficients documented by these pr
 MIT licence text for the two Bluetooth-Devices projects (Copyright (c) 2022 J. Nick Koston): identical to the text in
 [LICENSE](LICENSE), with that copyright line.
 
+## Test data
+
+The tests in `test/host/` use real packets and recordings from the test suites and sample files of these
+projects, with the values those projects decode as the expected result:
+
+| Project | Test data | Licence |
+|---|---|---|
+| [victron-ble](https://github.com/keshavdv/victron-ble) | Victron advertisements with their keys | The Unlicense (public domain) |
+| [ruuvitag-sensor](https://github.com/ttu/ruuvitag-sensor) and the [Ruuvi data format 5 specification](https://docs.ruuvi.com/communication/bluetooth-advertisements/data-format-5-rawv2) | RuuviTag packets | MIT, Copyright (c) 2016 Tomi Tuhkanen |
+| [ble_monitor](https://github.com/custom-components/ble_monitor) | ATC1441 and pvvx thermometer packets | MIT, Copyright (c) 2025 Custom components for Home Assistant |
+| [bthome-ble](https://github.com/Bluetooth-Devices/bthome-ble) | BTHome v2 packets | MIT, Copyright (c) 2022 Ernst Klamer |
+| [thermobeacon-ble](https://github.com/Bluetooth-Devices/thermobeacon-ble), [mopeka-iot-ble](https://github.com/Bluetooth-Devices/mopeka-iot-ble) | ThermoBeacon and Mopeka packets | MIT, Copyright (c) 2022 J. Nick Koston |
+| [canboat](https://github.com/canboat/canboat) | NMEA 2000 messages from the recordings in `samples/` | Apache License 2.0, (C) 2009-2026 Kees Verruijt |
+
 ## Libraries downloaded at build time (not included)
 
 | Library | Licence |

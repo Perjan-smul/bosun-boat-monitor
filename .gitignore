@@ -7,3 +7,5 @@ __pycache__/
 web/manifest_*.json
 web/firmware/
 enclosure/out/
+test/host/tests
+test/host/n2k_replay

@@ -520,6 +520,19 @@ automatically. Uses the Arduino framework (ESP32 core 2.0.x via `espressif32@6.9
 libraries above, put `lv_conf.h` next to the `lvgl` library folder and copy `src/` into your sketch.
 Also set *USB CDC On Boot* to *Enabled* for the serial log.
 
+### Tests on a PC
+
+The Bluetooth and NMEA 2000 decoders are tested on a PC, with real packets from the projects in
+[THIRD_PARTY.md](THIRD_PARTY.md) (Victron, Ruuvi, ATC/pvvx, BTHome, ThermoBeacon, Mopeka and NMEA 2000
+recordings). Needs a C++ compiler and OpenSSL (`libssl-dev`); GitHub runs them on every push.
+
+```bash
+make -C test/host
+```
+
+`scripts/n2k_compare.py` compares the NMEA 2000 decoder with [canboat](https://github.com/canboat/canboat) on
+whole recordings: on all of canboat's sample recordings (over a million messages) the values match.
+
 ## Project structure
 
 ```
@@ -563,6 +576,8 @@ src/ota_guard.cpp     rollback to the previous version on failed starts
 src/sensors.cpp       decoders: Victron (incl. Smart Lithium, BatteryProtect, Lynx), Mopeka Pro, Ruuvi, ATC, BTHome, ThermoBeacon
 src/n2k_decode.cpp    NMEA 2000 decoder (PGNs, fast packets), independent of the hardware
 src/n2k.cpp           CAN (TWAI) listen-only, clock from GPS
+test/host/            tests of the decoders on a PC (make -C test/host)
+scripts/n2k_compare.py  NMEA 2000 decoder compared with canboat on recordings
 ```
 
 ## Troubleshooting
