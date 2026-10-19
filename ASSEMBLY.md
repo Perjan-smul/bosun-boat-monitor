@@ -33,7 +33,7 @@ as printed on Rev4.0; check the print on your own board.
 
 | Pin | Signal | Connect |
 |---|---|---|
-| 1 | VIN | + of the 12 V, via the 1 A fuse (7–36 V allowed) |
+| 1 | VIN | + of the 12 V, via the 1 A fuse or a panel breaker (7–36 V allowed) |
 | 2 | GND | − of the 12 V |
 | 3 | RS485 A | not used |
 | 4 | RS485 B | not used |
@@ -220,13 +220,13 @@ Do this on the table with a 12 V supply first, and once more on board. The firmw
 
 - [ ] Power: red on VIN, black on GND, tight, with ferrules.
 - [ ] DIP switch 120R, position CAN off; rechargeable cell on the RTC connector, polarity checked.
-- [ ] Fuse in: the screen starts within a few seconds.
+- [ ] Fuse in (or breaker on): the screen starts within a few seconds.
 - [ ] ⚙ Settings: the clock shows *RTC found: time is kept*.
 - [ ] ⚙ Settings → *Test buzzer* → **Test**: the buzzer beeps.
 - [ ] On board, NMEA 2000 network on: ⚙ Settings → *NMEA 2000* shows messages per second and the number of devices.
 - [ ] Resistance between CANH and CANL, network off: about 60 Ω.
 - [ ] Every Bluetooth sensor at its final spot: signal better than −80 dBm.
-- [ ] Pull the fuse for 5 minutes and put it back: the clock is still right.
+- [ ] Pull the fuse (or switch the breaker off) for 5 minutes and restore it: the clock is still right.
 - [ ] With a micro SD card: ⚙ Settings → *Micro SD card* shows the free space; after a few minutes the WiFi page shows
   today's readings file under *Micro SD card*.
 
@@ -234,7 +234,7 @@ Do this on the table with a 12 V supply first, and once more on board. The firmw
 
 | What you see | Cause and fix |
 |---|---|
-| Screen stays black | Fuse, + and − swapped, or no voltage at the input. Measure on the board itself: 12–14.6 V. |
+| Screen stays black | Fuse or breaker, + and − swapped, or no voltage at the input. Measure on the board itself: 12–14.6 V. |
 | Screen dark or touch does not work | Look in the serial log (USB-C) for `[board]`. *geen hulpchip gevonden* (no helper chip found) means an older hardware version (V1/V2) that is not supported yet: send in the log. |
 | Touch is mirrored | Adjust `TOUCH_INVERT_X` / `TOUCH_INVERT_Y` in `src/board.h`. |
 | Screen keeps restarting | Loose power wire or a wire that is too thin or long. Check the reason for the last start on the WiFi page under *Diagnostics*. |

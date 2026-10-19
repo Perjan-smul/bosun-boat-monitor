@@ -12,7 +12,7 @@ shipping not included); check the price in the shop before ordering. How everyth
 |---|---|---|---|---|---|
 | **Waveshare ESP32-S3-Touch-LCD-4**, touch version | 1 | the screen with the ESP32-S3; CAN for NMEA 2000, clock, buzzer and micro SD are on it | Waveshare ESP32-S3-Touch-LCD-4 | 35–55 | Take the touch version. Not the -4B: it has no CAN and no 12 V input. |
 | **Rechargeable RTC cell ML2032 or ML2020 with JST SH plug** | 1 | keeps the clock running without power | Raspberry Pi 5 RTC battery ML2032 | 5–8 | **Strongly recommended:** without it the time is lost after every power cut. Like the RTC battery for the Raspberry Pi 5. Check that red ends up at the + or 1 on the board before plugging in. Never an ordinary CR2032. |
-| Fuse 1 A with holder | 1 | protects the board's 12 V supply | inline fuse holder 1A blade | 3–6 | Place it close to the battery. |
+| Fuse 1 A with holder | 1 | protects the board's 12 V supply | inline fuse holder 1A blade | 3–6 | Place it close to the battery. Not needed behind a breaker on the switch panel if the wire suits the breaker (see ASSEMBLY.md). |
 | Wire 1 mm², red and black, with heat-shrink | 1 set | power | 1 mm² wire red black | 5–12 | |
 | **Wire ferrules 0.25–1.5 mm² with crimp tool** | 1 set | on every wire in the screw terminal: stays put when the boat vibrates | ferrule crimping tool kit | 20–30 | Including 0.25 mm² for the thin sensor cable and a few twin ferrules 2 × 0.5 mm². |
 | NMEA 2000 drop cable, M12 female, one open end | 1 | connects the board to the boat's bus | NMEA 2000 drop cable M12 female | 15–30 | Length: up to the bus (max 6 m). |

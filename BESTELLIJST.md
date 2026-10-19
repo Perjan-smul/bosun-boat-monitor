@@ -12,7 +12,7 @@ montagehandleiding en in [ASSEMBLY.md](ASSEMBLY.md) (Engels).
 |---|---|---|---|---|---|
 | **Waveshare ESP32-S3-Touch-LCD-4**, touchversie | 1 | het scherm met de ESP32-S3; CAN voor NMEA 2000, klok, zoemer en micro-SD zitten erop | Waveshare ESP32-S3-Touch-LCD-4 | 35–55 | Neem de touchversie. Niet de -4B: die heeft geen CAN en geen 12 V-ingang. |
 | **Oplaadbare RTC-cel ML2032 of ML2020 met JST-SH-stekker** | 1 | houdt de klok gaande zonder stroom | Raspberry Pi 5 RTC battery ML2032 | 5–8 | **Sterk aangeraden:** zonder cel is de tijd na elke stroomuitval weg. Zoals de RTC-batterij voor de Raspberry Pi 5. Controleer vóór het insteken dat rood bij de + of 1 op het board uitkomt. Nooit een gewone CR2032. |
-| Zekering 1 A met houder | 1 | beveiliging van de 12 V-voeding van het board | inline fuse holder 1A blade | 3–6 | Plaats dicht bij de accu. |
+| Zekering 1 A met houder | 1 | beveiliging van de 12 V-voeding van het board | inline fuse holder 1A blade | 3–6 | Plaats dicht bij de accu. Niet nodig achter een automaat op het schakelpaneel als de draad bij de automaat past (zie de montagehandleiding). |
 | Draad 1 mm², rood en zwart, met krimpkous | 1 set | voeding | draad 1 mm² rood zwart | 5–12 | |
 | **Adereindhulzen 0,25–1,5 mm² met krimptang** | 1 set | op elke draad in de schroefklem: blijft vast bij trillingen | adereindhulzen set krimptang | 20–30 | Ook 0,25 mm² voor de dunne sensorkabel en een paar dubbele (twin) hulzen 2 × 0,5 mm². |
 | NMEA 2000 drop-kabel, M12 female, één open einde | 1 | verbindt het board met de bus van je boot | NMEA 2000 drop cable M12 female | 15–30 | Lengte: tot aan de bus (max. 6 m). |

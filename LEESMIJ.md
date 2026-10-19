@@ -481,7 +481,7 @@ alarm met zoemer is ook in de kooi te horen.
 ## Aansluiten (voeding)
 
 - **7–36 V** op **VIN** (pin 1) en **GND** (pin 2) van de groene schroefklem. Dus direct op de
-  12 V of 24 V boordspanning, gezekerd (bv. 1 A).
+  12 V of 24 V boordspanning, gezekerd: een zekering van 1 A, of een automaat op het schakelpaneel als de draad daarbij past (zie de montagehandleiding).
 - USB-C is alleen voor flashen en de seriële log. De montagehandleiding heeft tekeningen van alle aansluitingen.
 
 ## Installeren vanuit de browser

@@ -481,7 +481,7 @@ alarm with buzzer can be heard from your bunk too.
 ## Connecting (power supply)
 
 - **7–36 V** on **VIN** (pin 1) and **GND** (pin 2) of the green screw terminal. So directly on the
-  12 V or 24 V on-board supply, fused (e.g. 1 A).
+  12 V or 24 V on-board supply, fused: a 1 A fuse, or a breaker on the switch panel if the wire suits it (see ASSEMBLY.md).
 - USB-C is only for flashing and the serial log. The [assembly guide (ASSEMBLY.md)](ASSEMBLY.md) covers all connections, wire ferrules, the barometer sensor and mounting.
 
 ## Installing from the browser
