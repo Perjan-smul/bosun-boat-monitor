@@ -800,11 +800,15 @@ void updateOverview() {
 
   bool anySolar = false, anyShore = false, anyShunt = false;
   for (int i = 0; i < snapCount; i++) {
-    anySolar |= snap[i].cfg.type == SensorType::VictronSolar || snap[i].cfg.type == SensorType::VictronMultiRs;
-    anyShore |= snap[i].cfg.type == SensorType::VictronAcCharger || isVictronMulti(snap[i].cfg.type);
+    bool dcMeter = snap[i].cfg.type == SensorType::VictronDcMeter && snap[i].hasData;
+    int8_t meter = snap[i].reading.m.meterType;  // DC-energiemeter op een zonne- of walstroomlader
+    anySolar |= snap[i].cfg.type == SensorType::VictronSolar || snap[i].cfg.type == SensorType::VictronMultiRs ||
+                (dcMeter && meter == -9);
+    anyShore |= snap[i].cfg.type == SensorType::VictronAcCharger || isVictronMulti(snap[i].cfg.type) ||
+                (dcMeter && meter == -2);
     anyShunt |= isShunt(snap[i].cfg.type);
   }
-  float battFlow = haveShunt ? battW : solarOut + shoreOut;  // zonder shunt: aannemen dat alles naar de accu gaat
+  float battFlow = haveShunt ? battW : solarOut + shoreOut + e.dcIn;  // zonder shunt: aannemen dat alles naar de accu gaat
 
   // Zon
   showNode(nodeSun, anySolar);

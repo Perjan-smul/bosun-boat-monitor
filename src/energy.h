@@ -11,9 +11,10 @@ struct EnergySummary {
   float battV;
   float battA;
   float soc;        // NAN = onbekend
+  float dcIn;       // overige laders naar de accu (W): Orion XS, dynamo, generator ... via een DC-energiemeter
   float load;       // DC-verbruik (W), NAN zonder shunt
   int32_t ttg;      // resterende tijd (min), -1 = onbekend
-  bool haveSolar, haveShore, haveShunt;
+  bool haveSolar, haveShore, haveShunt, haveDcIn;
   uint8_t chargeState;  // laadfase van de lader die nu laadt, 0xFF = geen
 };
 
