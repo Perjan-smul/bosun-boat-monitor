@@ -422,6 +422,30 @@ TEST(bthome_v2) {
   CHECK_STR(value(r, "Batterij"), "93 %");
   CHECK_NEAR(r.m.tempC, 23.97, 0.001);
   CHECK_NEAR(r.m.humidity, 63.27, 0.001);
+  // Shelly BLU H&T (test_shelly_blu_ht_display_zb): binaire sensor (licht) tussen de waarden
+  r = btHome("40002e0164" "1e01" "2e34" "451601");
+  CHECK_STR(value(r, "Batterij"), "100 %");
+  CHECK_NEAR(r.m.humidity, 52, 0.001);
+  CHECK_NEAR(r.m.tempC, 27.8, 0.001);
+  // 1-byte temperaturen en stroom met teken
+  r = btHome("4057ea");
+  CHECK_NEAR(r.m.tempC, -22, 0.001);
+  r = btHome("4058ea");
+  CHECK_NEAR(r.m.tempC, -7.7, 0.001);
+  r = btHome("405d02ea");
+  CHECK_NEAR(r.m.amps, -5.63, 0.0001);
+  // Objecten die we niet tonen worden overgeslagen, ook vóór een waarde (objecten staan op volgorde van id):
+  // knop (0x3A, test_bthome_event_button_long_press), firmwareversie (0xF1, test_bthome_firmware_version_4),
+  // commando (0x3B) en tekst (0x53)
+  r = btHome("4000210164" "3a04" "451601");
+  CHECK_NEAR(r.m.tempC, 27.8, 0.001);
+  CHECK_STR(value(r, "Batterij"), "100 %");
+  r = btHome("4002ca09" "f100010204");
+  CHECK_NEAR(r.m.tempC, 25.06, 0.001);
+  r = btHome("40" "3b010305" "451601");
+  CHECK_NEAR(r.m.tempC, 27.8, 0.001);
+  r = btHome("44" "530c48656c6c6f20576f726c6421" "5d02ea");
+  CHECK_NEAR(r.m.amps, -5.63, 0.0001);
   // Versleuteld (bit 0 van de eerste byte): niet ondersteund
   auto d = hex("4102ca09");
   AdvData adv;
