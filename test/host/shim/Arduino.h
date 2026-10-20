@@ -9,6 +9,10 @@
 using std::max;
 using std::min;
 
+// Klok van de tests: zelf te zetten (main.cpp)
+extern uint32_t fakeMillis;
+inline uint32_t millis() { return fakeMillis; }
+
 #if !(defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 38))  // nieuwere glibc heeft hem al
 inline size_t strlcpy(char *dst, const char *src, size_t size) {
   size_t n = strlen(src);

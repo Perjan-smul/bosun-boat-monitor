@@ -424,7 +424,8 @@ ParseResult parseVictron(SensorType t, const AdvData &adv, const uint8_t *key, R
     }
     case SensorType::VictronDcMeter: {
       // SmartShunt als DC-energiemeter (victron-ble dc_energy_meter.py)
-      b.s(16);  // soort meter (lader, verbruiker, ...): niet getoond
+      int32_t meter = b.s(16);  // soort meter (lader, verbruiker, ...): voor de energiestroom, niet getoond
+      if (meter >= -9 && meter <= 8) r.m.meterType = meter;
       int32_t mv = b.s(16);
       uint32_t alarm = b.u(16), aux = b.u(16), auxMode = b.u(2);
       int32_t ma = b.s(22);
@@ -749,7 +750,7 @@ const char *typeName(SensorType t) {
 
 ParseResult parseReading(SensorType t, const AdvData &adv, const uint8_t *key, Reading &out, uint8_t medium) {
   memset(&out, 0, sizeof(out));
-  out.m = {NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, -1, 0xFF, 0, 0, NAN, NAN, 0, NAN, NAN, NAN, 3};
+  out.m = {NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, -1, 0xFF, 0, 0, NAN, NAN, 0, NAN, NAN, NAN, 3, 0};
   for (float &c : out.cellV) c = NAN;
   if (isVictron(t)) return parseVictron(t, adv, key, out);
   if (t == SensorType::MopekaPro) return parseMopeka(adv, out, medium);

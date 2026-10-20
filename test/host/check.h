@@ -1,6 +1,7 @@
 // Minimale testopzet voor de pc-tests: TEST(naam) { CHECK(...); }
 #pragma once
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <vector>
@@ -11,6 +12,7 @@ struct TestCase {
 };
 std::vector<TestCase> &testCases();
 extern int checkFailures;
+extern uint32_t fakeMillis;  // millis() in de tests (shim/Arduino.h)
 
 struct TestReg {
   TestReg(const char *name, void (*fn)()) { testCases().push_back({name, fn}); }

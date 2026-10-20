@@ -5,6 +5,7 @@ std::vector<TestCase> &testCases() {
   return t;
 }
 int checkFailures = 0;
+uint32_t fakeMillis = 0;
 
 int main() {
   int failed = 0;

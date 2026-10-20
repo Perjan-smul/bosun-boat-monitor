@@ -9,7 +9,7 @@ bool isFresh(const DeviceState &d) {
 bool isCharging(uint8_t state) { return (state >= 3 && state <= 7) || state == 245 || state == 247; }
 
 EnergySummary energy_summarize(const DeviceState *devs, int n) {
-  EnergySummary e = {0, 0, 0, 0, 0, NAN, 0, NAN, NAN, -1, false, false, false, 0xFF};
+  EnergySummary e = {0, 0, 0, 0, 0, NAN, 0, NAN, 0, NAN, -1, false, false, false, false, 0xFF};
   for (int i = 0; i < n; i++) {
     const DeviceState &d = devs[i];
     if (!isFresh(d)) continue;
@@ -48,6 +48,29 @@ EnergySummary energy_summarize(const DeviceState *devs, int n) {
         if (isnan(e.battV) && !isnan(m.volts)) e.battV = m.volts;
         break;
       }
+      case SensorType::VictronOrionXs:  // DC-DC-lader, meestal van de startaccu/dynamo
+        if (isnan(m.watts)) break;
+        e.haveDcIn = true;
+        e.dcIn += fmaxf(m.watts, 0);
+        if (isCharging(m.state) && m.watts > 0 && e.chargeState == 0xFF) e.chargeState = m.state;
+        break;
+      case SensorType::VictronDcMeter: {
+        // SmartShunt als DC-energiemeter op een bron: telt mee als lader (een verbruiker zit al in het verbruik)
+        if (m.meterType >= 0 || isnan(m.watts)) break;
+        float w = fmaxf(m.watts, 0);
+        if (m.meterType == -9) {  // zonnelader (bv. een MPPT zonder Bluetooth)
+          e.haveSolar = true;
+          e.pv += w;
+          e.solarOut += w;
+        } else if (m.meterType == -2) {  // walstroomlader
+          e.haveShore = true;
+          e.shoreOut += w;
+        } else {
+          e.haveDcIn = true;
+          e.dcIn += w;
+        }
+        break;
+      }
       case SensorType::VictronBattery:
       case SensorType::VictronLynx:
         if (isnan(m.amps)) break;  // Battery Sense: geen stroom
@@ -62,6 +85,6 @@ EnergySummary energy_summarize(const DeviceState *devs, int n) {
     }
   }
   // Verbruik = alles wat binnenkomt - wat de accu in gaat
-  if (e.haveShunt) e.load = fmaxf(e.solarOut + e.shoreOut - e.battW, 0);
+  if (e.haveShunt) e.load = fmaxf(e.solarOut + e.shoreOut + e.dcIn - e.battW, 0);
   return e;
 }

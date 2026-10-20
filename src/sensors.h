@@ -66,6 +66,9 @@ struct Metrics {
   float acInW;       // MultiPlus/Quattro/Multi RS: vermogen van de AC-ingang (walstroom/generator), NAN = onbekend
   float acOutW;      // idem: AC-uitgang (verbruik aan 230 V)
   uint8_t acIn;      // actieve AC-ingang: 0 = AC1, 1 = AC2, 2 = niet aangesloten, 3 = onbekend
+  // SmartShunt als DC-energiemeter: wat hij meet (victron-ble MeterType). Negatief = bron (-9 zonnelader,
+  // -6 dynamo, -3 DC-DC-lader, -2 walstroomlader ...), positief = verbruiker, 0 = onbekend
+  int8_t meterType;
 };
 
 // Geformatteerde meetwaarden, klaar om te tonen
