@@ -142,7 +142,7 @@ void display_begin() {
   wsio_backlight(200);
 
   // 4. Geef de co-processor en de GT911 voldoende tijd om uit hardware-reset te komen
-  delay(150);
+  delay(300);
 
   // 5. Initialiseer de touchcontroller op adres 0x5D
   if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
