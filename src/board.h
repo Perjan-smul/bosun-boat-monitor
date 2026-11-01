@@ -17,11 +17,14 @@
 #define LCD_SPI_MOSI 1
 #define LCD_ROTATION 2  // het paneel zit 180 graden gedraaid in de behuizing
 
-// Gedeelde I2C-bus: hulpchip (V4: CH32V003 op 0x24, V3: TCA9554 op 0x20), GT911-touch, PCF85063-klok (0x51)
-#define I2C_SDA 15
-#define I2C_SCL 7
-#define TOUCH_SDA I2C_SDA
-#define TOUCH_SCL I2C_SCL
+
+// Gedeelde I2C-bus 0: Hulpchip (V4: CH32V003 op 0x24)
+#define I2C_SDA 8
+#define I2C_SCL 9
+
+// Gedeelde I2C-bus 1: GT911-touch & PCF85063-klok (0x51)
+#define TOUCH_SDA 15
+#define TOUCH_SCL 7
 
 // CAN (TJA1051) voor NMEA 2000
 #define CAN_TX_PIN 6
