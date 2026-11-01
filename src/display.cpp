@@ -52,7 +52,10 @@ void boardInit() {
   wsio_begin();  // Start de hulpchip en haalt scherm + touch uit reset
 }
 
-bool touchInit() { return touch.begin(TOUCH_SDA, TOUCH_SCL); }
+bool touchInit() { 
+  // Probeer expliciet het GT911 adres 0x5D (of 0x14 als 0x5D faalt)
+  return touch.begin(TOUCH_SDA, TOUCH_SCL, 0x5D); 
+}
 
 // De achtergrondverlichting dimt via de hulpchip
 void setBacklight(int level) { wsio_backlight(level); }
