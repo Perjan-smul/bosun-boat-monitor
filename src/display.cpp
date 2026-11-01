@@ -133,21 +133,24 @@ void display_keep_awake(bool keep) {
 }
 
 void display_begin() {
-  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio) zodat het scherm en touch uit reset zijn
+  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio)
   boardInit();
 
-  // 2. Start de grafische display-driver
+  // 2. Start het display en zet de achtergrondverlichting direct geforceerd aan
   if (!gfx->begin()) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
-  setBacklight(0);  // Fadet in via backlightTimer
+  wsio_backlight(200); // <-- Hier de helderheid direct instellen
 
-  // 3. Geef de hardware even de tijd om stabiel te komen na de reset via I2C
-  delay(50);
+  // 3. Geef de co-processor en GT911 extra tijd om uit reset te komen
+  delay(150);          // <-- De extra wachttijd hier toevoegen
 
-  // 4. Initialiseer de GT911 touchcontroller
+  // 4. Initialiseer de touchcontroller
   if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
 
   lv_init();
+
+  // ... (de rest van je LVGL setup en buffers blijven hieronder staan)
+}
 
   // Tekenbuffer van 40 regels in intern RAM (sneller dan PSRAM)
   const size_t bufPixels = LCD_WIDTH * 40;
