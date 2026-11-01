@@ -14,11 +14,11 @@ namespace {
 // Waveshare ESP32-S3-Touch-LCD-4 (waarden uit Waveshare's eigen Arduino-voorbeelden)
 
 Arduino_DataBus *bus = new Arduino_SWSPI(GFX_NOT_DEFINED /* DC */, LCD_SPI_CS, LCD_SPI_SCK, LCD_SPI_MOSI,
-                                         GFX_NOT_DEFINED /* MISO */);
+                                     GFX_NOT_DEFINED /* MISO */);
 
 Arduino_ESP32RGBPanel *panel = new Arduino_ESP32RGBPanel(
     LCD_DE, LCD_VSYNC, LCD_HSYNC, LCD_PCLK,
-    46, 3, 8, 18, 17,       // R0-R4
+    46, 3, 8, 18, 17,      // R0-R4
     14, 13, 12, 11, 10, 9,  // G0-G5
     5, 45, 48, 47, 21,      // B0-B4
     1, 10, 8, 50,           // hsync: polariteit, front porch, pulsbreedte, back porch
@@ -49,7 +49,7 @@ void recoverI2c() {
 void boardInit() {
   recoverI2c();
   Wire.begin(I2C_SDA, I2C_SCL, 400000);
-  wsio_begin();  // systeemvoeding aan, scherm en touch uit reset
+  wsio_begin();  // Start de hulpchip en haalt scherm + touch uit reset
 }
 
 bool touchInit() { return touch.begin(TOUCH_SDA, TOUCH_SCL); }
@@ -130,11 +130,18 @@ void display_keep_awake(bool keep) {
 }
 
 void display_begin() {
+  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio) zodat het scherm en touch uit reset zijn
   boardInit();
+
+  // 2. Start de grafische display-driver
   if (!gfx->begin()) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
-  setBacklight(0);  // fadet in via backlightTimer
+  setBacklight(0);  // Fadet in via backlightTimer
 
+  // 3. Geef de hardware even de tijd om stabiel te komen na de reset via I2C
+  delay(50);
+
+  // 4. Initialiseer de GT911 touchcontroller
   if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
 
   lv_init();
@@ -158,7 +165,7 @@ void display_begin() {
   lv_indev_drv_register(&indevDrv);
 
   lv_timer_create(backlightTimer, 20, nullptr);
-  buzzer_begin();  // zit op dezelfde I2C-bus
+  buzzer_begin();  // Zit op dezelfde I2C-bus
 }
 
 void display_set_max_brightness(uint8_t level) { blMax = level < 20 ? 20 : level; }
