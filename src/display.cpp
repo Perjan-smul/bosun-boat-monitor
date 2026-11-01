@@ -54,7 +54,7 @@ void boardInit() {
 
 bool touchInit() { 
   // Probeer expliciet het GT911 adres 0x5D (of 0x14 als 0x5D faalt)
-  return touch.begin(TOUCH_SDA, TOUCH_SCL, 0x5D); 
+  return touch.begin(TOUCH_SDA, TOUCH_SCL, 0x14); 
 }
 
 // De achtergrondverlichting dimt via de hulpchip
