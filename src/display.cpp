@@ -52,10 +52,8 @@ void boardInit() {
   wsio_begin();  // Start de hulpchip en haalt scherm + touch uit reset
 }
 
-bool touchInit() { 
-  // Probeer expliciet het GT911 adres 0x5D (of 0x14 als 0x5D faalt)
-  return touch.begin(TOUCH_SDA, TOUCH_SCL, 0x14); 
-}
+// Expliciet adres 0x5D meegeven aan de GT911 voor betrouwbare detectie
+bool touchInit() { return touch.begin(TOUCH_SDA, TOUCH_SCL, 0x5D); }
 
 // De achtergrondverlichting dimt via de hulpchip
 void setBacklight(int level) { wsio_backlight(level); }
@@ -133,45 +131,24 @@ void display_keep_awake(bool keep) {
 }
 
 void display_begin() {
-  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio)
+  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio) co-processor
   boardInit();
 
-  // 2. Start het display en zet de achtergrondverlichting direct geforceerd aan
+  // 2. Start het grafische paneel
   if (!gfx->begin()) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
-  wsio_backlight(200); // <-- Hier de helderheid direct instellen
 
-  // 3. Geef de co-processor en GT911 extra tijd om uit reset te komen
-  delay(150);          // <-- De extra wachttijd hier toevoegen
+  // 3. Forceer de backlight direct aan zodat het scherm niet zwart blijft
+  wsio_backlight(200);
 
-  // 4. Initialiseer de touchcontroller
+  // 4. Geef de co-processor en de GT911 voldoende tijd om uit hardware-reset te komen
+  delay(150);
+
+  // 5. Initialiseer de touchcontroller op adres 0x5D
   if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
 
   lv_init();
 
-  // ... (de rest van je LVGL setup en buffers blijven hieronder staan)
-}
-
   // Tekenbuffer van 40 regels in intern RAM (sneller dan PSRAM)
   const size_t bufPixels = LCD_WIDTH * 40;
-  auto *buf = (lv_color_t *)heap_caps_malloc(bufPixels * sizeof(lv_color_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-  if (!buf) buf = (lv_color_t *)ps_malloc(bufPixels * sizeof(lv_color_t));
-  lv_disp_draw_buf_init(&drawBuf, buf, nullptr, bufPixels);
-
-  lv_disp_drv_init(&dispDrv);
-  dispDrv.hor_res = LCD_WIDTH;
-  dispDrv.ver_res = LCD_HEIGHT;
-  dispDrv.flush_cb = flushCb;
-  dispDrv.draw_buf = &drawBuf;
-  lv_disp_drv_register(&dispDrv);
-
-  lv_indev_drv_init(&indevDrv);
-  indevDrv.type = LV_INDEV_TYPE_POINTER;
-  indevDrv.read_cb = touchCb;
-  lv_indev_drv_register(&indevDrv);
-
-  lv_timer_create(backlightTimer, 20, nullptr);
-  buzzer_begin();  // Zit op dezelfde I2C-bus
-}
-
-void display_set_max_brightness(uint8_t level) { blMax = level < 20 ? 20 : level; }
+  auto *buf = (lv_color_t *)heap_caps_malloc(bufPixels * sizeof(lv_color_t), MALLOC_CAP
