@@ -9,7 +9,14 @@ namespace {
 
 constexpr uint8_t CH32_ADDR = 0x24;
 constexpr uint8_t CH32_REG_DIR = 0x02, CH32_REG_OUT = 0x03, CH32_REG_PWM = 0x05;
-constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_LCD_RST = 1 << 3, CH32_SYS_EN = 1 << 5, CH32_BEE_EN = 1 << 6;
+constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_TP_INT = 1 << 2, CH32_LCD_RST = 1 << 3, CH32_SYS_EN = 1 << 5,
+                  CH32_BEE_EN = 1 << 6;
+// Richting: 1 = uitgang. TP_INT is alleen tijdens de touch-reset een uitgang (kiest het GT911-adres),
+// daarna moet hij los: de GT911 stuurt hem zelf. Blijft hij laag gedreven, dan reageert de GT911 niet.
+constexpr uint8_t CH32_DIR_RUN = CH32_TP_RST | CH32_LCD_RST | CH32_SYS_EN | CH32_BEE_EN;
+// De achtergrondverlichting van V4 is omgekeerd: PWM 0 = vol aan, 255 = uit. Boven 247 laat
+// Waveshare's schakeling hem flikkeren (zie de ESPHome-driver waveshare_io_ch32v003).
+constexpr uint8_t CH32_PWM_OFF = 247;
 
 constexpr uint8_t TCA_ADDR = 0x20;
 constexpr uint8_t TCA_REG_OUT = 0x01, TCA_REG_CFG = 0x03;  // configuratie: 1 = ingang
@@ -47,16 +54,18 @@ WsIo wsio_begin() {
   else type = WsIo::None;
 
   if (type == WsIo::Ch32) {
-    // Alles laag (scherm en touch in reset), dan systeemvoeding aan en resets los; zoemer uit
-    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
-    out = 0;
+    // Systeemvoeding blijft aan; scherm en touch in reset, TP_INT laag (GT911 kiest dan 0x5D), zoemer uit
+    writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);
+    out = CH32_SYS_EN;
     writeOut();
-    delay(200);
-    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN | CH32_TP_INT);
+    delay(20);
+    // Resets los; TP_INT nog even laag houden, dan als ingang vrijgeven aan de GT911
     out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
     writeOut();
-    writeReg(CH32_ADDR, CH32_REG_PWM, 0);  // achtergrondverlichting fadet daarna in
-    delay(200);
+    delay(10);
+    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN);
+    delay(100);  // GT911 en ST7701 opstarttijd
     log_line("[board] Waveshare V4 (CH32V003) gevonden");
   } else if (type == WsIo::Tca9554) {
     out = 0;
@@ -77,7 +86,8 @@ WsIo wsio_type() { return type; }
 
 void wsio_backlight(uint8_t level) {
   if (type == WsIo::Ch32) {
-    writeReg(CH32_ADDR, CH32_REG_PWM, level);
+    // level 0 = uit .. 255 = vol aan; omzetten naar de omgekeerde PWM van V4
+    writeReg(CH32_ADDR, CH32_REG_PWM, (uint8_t)(CH32_PWM_OFF - (uint16_t)level * CH32_PWM_OFF / 255));
   } else if (type == WsIo::Tca9554) {
     uint8_t n = level ? (out | TCA_BL) : (out & ~TCA_BL);
     if (n != out) {

@@ -52,10 +52,7 @@ void boardInit() {
   wsio_begin();  // Start de hulpchip en haalt scherm + touch uit reset
 }
 
-bool touchInit() { 
-  // Laat de library zelf de pinnen en het standaard adres laten detecteren
-  return touch.begin(); 
-}
+bool touchInit() { return touch.begin(TOUCH_SDA, TOUCH_SCL); }
 
 // De achtergrondverlichting dimt via de hulpchip
 void setBacklight(int level) { wsio_backlight(level); }
@@ -133,24 +130,35 @@ void display_keep_awake(bool keep) {
 }
 
 void display_begin() {
-  // 1. Initialiseer de I2C-bus en activeer de CH32V003 (wsio) co-processor
-  boardInit();
-
-  // 2. Start het grafische paneel
+  boardInit();  // I2C-bus, hulpchip, resets van scherm en touch
   if (!gfx->begin()) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
+  setBacklight(0);  // fadet in via backlightTimer
 
-  // 3. Forceer de backlight direct aan zodat het scherm niet zwart blijft
-  wsio_backlight(200);
-
-  // 4. Geef de co-processor en de GT911 voldoende tijd om uit hardware-reset te komen
-  delay(300);
-
-  // 5. Initialiseer de touchcontroller op adres 0x5D
   if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
 
   lv_init();
 
   // Tekenbuffer van 40 regels in intern RAM (sneller dan PSRAM)
   const size_t bufPixels = LCD_WIDTH * 40;
-  auto *buf = (lv_color_t *)heap_caps_malloc(bufPixels * sizeof(lv_color_t), MALLOC_CAP
+  auto *buf = (lv_color_t *)heap_caps_malloc(bufPixels * sizeof(lv_color_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  if (!buf) buf = (lv_color_t *)ps_malloc(bufPixels * sizeof(lv_color_t));
+  lv_disp_draw_buf_init(&drawBuf, buf, nullptr, bufPixels);
+
+  lv_disp_drv_init(&dispDrv);
+  dispDrv.hor_res = LCD_WIDTH;
+  dispDrv.ver_res = LCD_HEIGHT;
+  dispDrv.flush_cb = flushCb;
+  dispDrv.draw_buf = &drawBuf;
+  lv_disp_drv_register(&dispDrv);
+
+  lv_indev_drv_init(&indevDrv);
+  indevDrv.type = LV_INDEV_TYPE_POINTER;
+  indevDrv.read_cb = touchCb;
+  lv_indev_drv_register(&indevDrv);
+
+  lv_timer_create(backlightTimer, 20, nullptr);
+  buzzer_begin();  // zit op dezelfde I2C-bus
+}
+
+void display_set_max_brightness(uint8_t level) { blMax = level < 20 ? 20 : level; }

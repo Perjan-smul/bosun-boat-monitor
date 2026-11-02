@@ -6,12 +6,16 @@ class GT911 {
  public:
   bool begin(int sda, int scl) {
     Wire.begin(sda, scl, 400000);
-    for (uint8_t a : {0x5D, 0x14}) {
-      Wire.beginTransmission(a);
-      if (Wire.endTransmission() == 0) {
-        addr_ = a;
-        return true;
+    // Na de reset heeft de GT911 even nodig; een paar keer proberen op beide mogelijke adressen
+    for (int tries = 0; tries < 10; tries++) {
+      for (uint8_t a : {0x5D, 0x14}) {
+        Wire.beginTransmission(a);
+        if (Wire.endTransmission() == 0) {
+          addr_ = a;
+          return true;
+        }
       }
+      delay(20);
     }
     return false;
   }
