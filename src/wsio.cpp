@@ -146,5 +146,16 @@ void wsio_buzzer(bool on) {
   if (type != WsIo::None && n != out) {
     out = n;
     writeOut();
+    // Diagnose: de eerste keren loggen wat er in de hulpchip staat
+    static uint8_t logged = 0;
+    if (logged < 6) {
+      logged++;
+      uint8_t dir = 0, o = 0;
+      uint8_t addr = type == WsIo::Ch32 ? CH32_ADDR : TCA_ADDR;
+      bool ok = readReg(addr, type == WsIo::Ch32 ? CH32_REG_DIR : TCA_REG_CFG, dir) &&
+                readReg(addr, type == WsIo::Ch32 ? CH32_REG_OUT : TCA_REG_OUT, o);
+      logf("[zoemer] %s: uitgangen 0x%02X geschreven, gelezen 0x%02X, richting 0x%02X%s\n", on ? "aan" : "uit", out, o,
+           dir, ok ? "" : " (lezen mislukt)");
+    }
   }
 }

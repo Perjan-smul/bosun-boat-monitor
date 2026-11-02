@@ -187,9 +187,10 @@ void display_begin() {
     logf("[touch] GT911 %s\n", info);
   }
 
-  // Pixelklok 10 MHz (standaard 12): het beeld komt continu uit PSRAM; met wifi, Bluetooth en
-  // schrijven naar flash tegelijk gaf 12 MHz af en toe glitches. 10 MHz = ca. 35 beelden per seconde.
-  if (!gfx->begin(10000000)) log_line("[display] gfx->begin() mislukt");
+  // Pixelklok 8 MHz (standaard 12): het beeld komt continu uit PSRAM, en tekenen schrijft ook in
+  // PSRAM. Bij 12 en 10 MHz gaf dat glitches als er iets op het scherm veranderde (bv. een nieuwe
+  // ThermoBeacon-waarde). 8 MHz = ca. 28 beelden per seconde.
+  if (!gfx->begin(8000000)) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
   setBacklight(0);  // fadet in via backlightTimer
 
