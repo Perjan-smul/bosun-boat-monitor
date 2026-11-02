@@ -34,24 +34,35 @@ class GT911 {
 
   uint32_t errors() const { return errors_; }  // mislukte leesacties sinds de start
 
-  // Geeft true terug zolang het scherm aangeraakt wordt
+  // Geeft true terug zolang het scherm aangeraakt wordt. Zoals Waveshare's driver (SensorLib):
+  // het aantal punten uit 0x814E, zonder op de 'buffer klaar'-bit te wachten; daarna wissen.
   bool read(uint16_t &x, uint16_t &y) {
     uint8_t status;
-    bool ok = readReg(0x814E, &status, 1);
-    if (!ok) errors_++;
-    if (ok && (status & 0x80)) {
-      touched_ = (status & 0x0F) > 0;
+    if (!readReg(0x814E, &status, 1)) {
+      errors_++;
+      x = x_;
+      y = y_;
+      return touched_;
+    }
+    lastStatus_ = status;
+    uint8_t points = status & 0x0F;
+    if (status & 0x80) {
+      touched_ = points > 0 && points <= 5;
       uint8_t p[4];
       if (touched_ && readReg(0x8150, p, 4)) {
         x_ = p[0] | (p[1] << 8);
         y_ = p[2] | (p[3] << 8);
       }
-      writeReg(0x814E, 0);
+    } else if (points == 0) {
+      touched_ = false;
     }
+    if (status) writeReg(0x814E, 0);
     x = x_;
     y = y_;
     return touched_;
   }
+
+  uint8_t lastStatus() const { return lastStatus_; }
 
  private:
   bool readReg(uint16_t reg, uint8_t *buf, size_t len) {
@@ -74,6 +85,7 @@ class GT911 {
 
   uint8_t addr_ = 0x5D;
   uint32_t errors_ = 0;
+  uint8_t lastStatus_ = 0;
   bool touched_ = false;
   uint16_t x_ = 0, y_ = 0;
 };
