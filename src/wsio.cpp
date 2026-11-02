@@ -56,30 +56,39 @@ void writeOut() {
 }  // namespace
 
 WsIo wsio_begin() {
-  if (probe(CH32_ADDR)) type = WsIo::Ch32;
-  else if (probe(TCA_ADDR)) type = WsIo::Tca9554;
-  else type = WsIo::None;
+  // Bij koud opstarten is de hulpchip (CH32V003, een eigen microcontroller) soms later klaar dan de
+  // ESP32. Niet gevonden = scherm blijft in reset en de zoemer blijft aan (begintoestand van de CH32),
+  // dus tot 3 s blijven zoeken.
+  type = WsIo::None;
+  uint32_t t0 = millis();
+  int tries = 0;
+  while (millis() - t0 < 3000) {
+    tries++;
+    if (probe(CH32_ADDR)) { type = WsIo::Ch32; break; }
+    if (probe(TCA_ADDR)) { type = WsIo::Tca9554; break; }
+    delay(50);
+  }
+  if (tries > 1) logf("[board] hulpchip na %d pogingen (%lu ms)\n", tries, (unsigned long)(millis() - t0));
 
   if (type == WsIo::Ch32) {
     // Precies zoals Waveshare's eigen Arduino-voorbeelden voor dit bord (WS_CH32_IO.cpp,
     // initDisplayPower): alle pinnen uitgang en laag (ook SYS_EN en TP_INT), 200 ms,
     // dan voeding en resets hoog; TP_INT blijft laag (GT911 op 0x5D), 200 ms opstarttijd.
-    writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);  // backlight uit tot het scherm draait
-    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
-    out = 0;
-    writeOut();
-    delay(200);
-    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
-    out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
-    writeOut();
-    delay(200);
-    {
-      // Diagnose: komen richting en uitgangen echt in de hulpchip aan? (ingangen: 0x04)
-      uint8_t dir = 0, o = 0, in = 0;
-      bool ok = readReg(CH32_ADDR, CH32_REG_DIR, dir) && readReg(CH32_ADDR, CH32_REG_OUT, o) &&
-                readReg(CH32_ADDR, 0x04, in);
-      logf("[board] CH32 richting 0x%02X, uitgangen 0x%02X, ingangen 0x%02X%s (verwacht 0xFF, 0x%02X)\n", dir, o,
-           in, ok ? "" : " (lezen mislukt)", out);
+    // Tot 3 keer, met controle: lees terug of richting en uitgangen echt zijn overgenomen
+    uint8_t dir = 0, o = 0;
+    for (int attempt = 0; attempt < 3; attempt++) {
+      writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);  // backlight uit tot het scherm draait
+      writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+      out = 0;
+      writeOut();
+      delay(200);
+      writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+      out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
+      writeOut();
+      delay(200);
+      if (readReg(CH32_ADDR, CH32_REG_DIR, dir) && readReg(CH32_ADDR, CH32_REG_OUT, o) && dir == 0xFF && o == out)
+        break;
+      logf("[board] CH32 niet goed ingesteld (richting 0x%02X, uitgangen 0x%02X), opnieuw\n", dir, o);
     }
     log_line("[board] Waveshare V4 (CH32V003) gevonden");
   } else if (type == WsIo::Tca9554) {
