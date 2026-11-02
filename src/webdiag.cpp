@@ -173,6 +173,19 @@ void handleDiag() {
     if (st.running) {
       p += row(T("Berichten"), fmt(T("%lu per seconde"), (unsigned long)st.framesPerSec) +
                                    (st.framesPerSec ? String() : " &middot; " + span("warn", T("geen verkeer: kabel?"))));
+      // Wat de CAN-module zelf ziet: verklaart een stille bus
+      const char *why = nullptr;
+      switch (n2k_diag(st)) {
+        case N2kDiag::Silent: why = T("geen signaal op de draden: kabel aangesloten, 12 V op de bus, afsluitweerstanden?"); break;
+        case N2kDiag::Errors: why = T("wel signaal, maar onleesbaar: CAN-H en CAN-L verwisseld, of geen ander apparaat dat berichten bevestigt (Bosun luistert alleen)"); break;
+        case N2kDiag::NotN2k: why = T("wel CAN-verkeer, maar geen NMEA 2000 (11-bits berichten)"); break;
+        case N2kDiag::RxStuckLow: why = T("CAN-lijn staat steeds laag: draden kortgesloten of CAN-chip zonder voeding?"); break;
+        default: break;
+      }
+      if (why) p += row(T("Oorzaak"), span("warn", why));
+      p += row(T("CAN-bus"), fmt(T("%lu fouten (%lu per seconde), foutenteller %lu, gemist %lu, lijn %u%% laag"),
+                                  (unsigned long)st.busErrors, (unsigned long)st.errorsPerSec, (unsigned long)st.rxErrors,
+                                  (unsigned long)st.rxMissed, (unsigned)st.rxLowPct));
       p += row(T("Apparaten"), String(st.sources));
       p += row(T("Klok via GPS"), st.lastClockSync ? ago(st.lastClockSync) : String(T("nog niet")));
     }

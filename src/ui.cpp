@@ -3104,6 +3104,9 @@ void buildSettings() {
   if (!n2k_available()) snprintf(n2kSub, sizeof(n2kSub), T("Niet beschikbaar op dit board"));
   else if (!ns.running) snprintf(n2kSub, sizeof(n2kSub), T("Uit"));
   else if (ns.framesPerSec) snprintf(n2kSub, sizeof(n2kSub), T("%lu berichten/s  " LV_SYMBOL_BULLET "  %u apparaten"), (unsigned long)ns.framesPerSec, ns.sources);
+  else if (n2k_diag(ns) == N2kDiag::Errors) snprintf(n2kSub, sizeof(n2kSub), T("Signaal, maar onleesbaar: zie diagnose"));
+  else if (n2k_diag(ns) == N2kDiag::NotN2k) snprintf(n2kSub, sizeof(n2kSub), T("CAN-verkeer, maar geen NMEA 2000"));
+  else if (n2k_diag(ns) == N2kDiag::RxStuckLow) snprintf(n2kSub, sizeof(n2kSub), T("CAN-lijn steeds laag: kortsluiting?"));
   else snprintf(n2kSub, sizeof(n2kSub), T("Geen verkeer: kabel of CAN-module?"));
   card = makeSettingRow(list, "NMEA 2000", n2kSub);
   if (n2k_available()) makeSwitch(card, s.n2k, [](lv_event_t *e) {

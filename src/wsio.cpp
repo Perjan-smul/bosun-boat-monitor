@@ -8,7 +8,7 @@
 namespace {
 
 constexpr uint8_t CH32_ADDR = 0x24;
-constexpr uint8_t CH32_REG_DIR = 0x02, CH32_REG_OUT = 0x03, CH32_REG_PWM = 0x05;
+constexpr uint8_t CH32_REG_DIR = 0x02, CH32_REG_OUT = 0x03, CH32_REG_IN = 0x04, CH32_REG_PWM = 0x05;
 constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_TP_INT = 1 << 2, CH32_LCD_RST = 1 << 3, CH32_SYS_EN = 1 << 5,
                   CH32_BEE_EN = 1 << 6;
 // Richting: 1 = uitgang. Waveshare zet alle pinnen op uitgang (0xFF), ook TP_INT.
@@ -17,7 +17,7 @@ constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_TP_INT = 1 << 2, CH32_LCD_RST = 1 <
 constexpr uint8_t CH32_PWM_OFF = 247;
 
 constexpr uint8_t TCA_ADDR = 0x20;
-constexpr uint8_t TCA_REG_OUT = 0x01, TCA_REG_CFG = 0x03;  // configuratie: 1 = ingang
+constexpr uint8_t TCA_REG_IN = 0x00, TCA_REG_OUT = 0x01, TCA_REG_CFG = 0x03;  // configuratie: 1 = ingang
 constexpr uint8_t TCA_TP_RST = 1 << 0, TCA_BL = 1 << 1, TCA_LCD_RST = 1 << 2, TCA_BEE = 1 << 5;
 
 WsIo type = WsIo::None;
@@ -39,18 +39,29 @@ bool writeReg(uint8_t addr, uint8_t reg, uint8_t val) {
   return false;
 }
 
+// Registeradres en lezen in één transactie (herhaalde start, geen stop ertussen), zoals Waveshare's
+// WS_CH32_IO. De CH32 is een microcontroller met eigen firmware. Met een stop ertussen las 1.0.6 de
+// richting als 0x2A terug (gelijk aan de laatst geschreven uitgangen, zonder de zoemerpin): waarschijnlijk
+// ziet de CH32 een losse schrijfactie met alleen het registeradres als schrijfopdracht met een oude
+// waarde. Dan is de zoemerpin een ingang en piept hij nooit.
 bool readReg(uint8_t addr, uint8_t reg, uint8_t &val) {
   Wire.beginTransmission(addr);
   Wire.write(reg);
-  if (Wire.endTransmission() != 0) return false;
+  if (Wire.endTransmission(false) != 0) return false;
   if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;
   val = Wire.read();
   return true;
 }
 
 void writeOut() {
-  if (type == WsIo::Ch32) writeReg(CH32_ADDR, CH32_REG_OUT, out);
-  else if (type == WsIo::Tca9554) writeReg(TCA_ADDR, TCA_REG_OUT, out);
+  if (type == WsIo::Ch32) {
+    // Richting elke keer opnieuw: alle pinnen uitgang (zoals Waveshare). Kost één I2C-schrijfactie en
+    // herstelt het als de CH32 de richting toch kwijt is.
+    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+    writeReg(CH32_ADDR, CH32_REG_OUT, out);
+  } else if (type == WsIo::Tca9554) {
+    writeReg(TCA_ADDR, TCA_REG_OUT, out);
+  }
 }
 
 }  // namespace
@@ -78,11 +89,9 @@ WsIo wsio_begin() {
     uint8_t dir = 0, o = 0;
     for (int attempt = 0; attempt < 3; attempt++) {
       writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);  // backlight uit tot het scherm draait
-      writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
       out = 0;
-      writeOut();
+      writeOut();  // schrijft ook de richting
       delay(200);
-      writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
       out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
       writeOut();
       delay(200);
@@ -110,7 +119,6 @@ WsIo wsio_type() { return type; }
 
 void wsio_reset_panel(uint16_t low_ms) {
   if (type == WsIo::Ch32) {
-    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
     out = 0;
     writeOut();
     delay(low_ms);
@@ -150,12 +158,18 @@ void wsio_buzzer(bool on) {
     static uint8_t logged = 0;
     if (logged < 6) {
       logged++;
-      uint8_t dir = 0, o = 0;
-      uint8_t addr = type == WsIo::Ch32 ? CH32_ADDR : TCA_ADDR;
-      bool ok = readReg(addr, type == WsIo::Ch32 ? CH32_REG_DIR : TCA_REG_CFG, dir) &&
-                readReg(addr, type == WsIo::Ch32 ? CH32_REG_OUT : TCA_REG_OUT, o);
-      logf("[zoemer] %s: uitgangen 0x%02X geschreven, gelezen 0x%02X, richting 0x%02X%s\n", on ? "aan" : "uit", out, o,
-           dir, ok ? "" : " (lezen mislukt)");
+      delay(2);  // de CH32 verwerkt de opdracht in zijn eigen lus
+      uint8_t dir = 0, o = 0, in = 0;
+      bool ok;
+      if (type == WsIo::Ch32) {
+        ok = readReg(CH32_ADDR, CH32_REG_DIR, dir) && readReg(CH32_ADDR, CH32_REG_OUT, o) &&
+             readReg(CH32_ADDR, CH32_REG_IN, in);
+      } else {
+        ok = readReg(TCA_ADDR, TCA_REG_CFG, dir) && readReg(TCA_ADDR, TCA_REG_OUT, o) &&
+             readReg(TCA_ADDR, TCA_REG_IN, in);
+      }
+      logf("[zoemer] %s: uitgangen 0x%02X geschreven, gelezen 0x%02X, richting 0x%02X, pinnen 0x%02X%s\n",
+           on ? "aan" : "uit", out, o, dir, in, ok ? "" : " (lezen mislukt)");
     }
   }
 }

@@ -7,6 +7,7 @@
 #include "settings.h"
 
 #if defined(CAN_TX_PIN)
+#include <driver/gpio.h>
 #include <driver/twai.h>
 #endif
 
@@ -22,6 +23,15 @@ SemaphoreHandle_t lockHandle() {
 }
 bool running = false;
 uint32_t fps = 0, lastFrames = 0, lastStatMs = 0, lastSync = 0;
+// Diagnose van de bus: ook wat de decoder niet ziet (11-bits berichten, fouten, de RX-lijn zelf)
+volatile uint32_t rawFrames = 0, stdFrames = 0;  // alle ontvangen berichten / daarvan niet-NMEA 2000
+volatile uint32_t rxSamples = 0, rxLow = 0;      // RX-lijn bemonsterd in de ontvangsttaak
+uint32_t rawPerSec = 0, stdPerSec = 0, errPerSec = 0, lastRaw = 0, lastStd = 0, lastErr = 0;
+uint8_t rxLowPct = 0;
+uint32_t busErrors = 0, rxMissed = 0, rxErrCounter = 0;
+uint8_t busState = 0;
+uint32_t startMs = 0;
+bool reported = false;  // eenmalige melding in het logboek na de eerste 10 s
 
 struct Lock {
   Lock() { xSemaphoreTake(lockHandle(), portMAX_DELAY); }
@@ -32,11 +42,19 @@ struct Lock {
 void rxTask(void *) {
   twai_message_t m;
   for (;;) {
-    if (!running || twai_receive(&m, pdMS_TO_TICKS(200)) != ESP_OK) {
-      if (!running) vTaskDelay(pdMS_TO_TICKS(200));
+    if (!running) {
+      vTaskDelay(pdMS_TO_TICKS(200));
       continue;
     }
-    if (!m.extd || m.rtr) continue;  // NMEA 2000 gebruikt alleen 29-bits id's
+    // RX van de CAN-chip bemonsteren: rust (recessief) = hoog, steeds laag = iets mis met de bus of de chip
+    rxSamples = rxSamples + 1;
+    if (!gpio_get_level((gpio_num_t)CAN_RX_PIN)) rxLow = rxLow + 1;
+    if (twai_receive(&m, pdMS_TO_TICKS(10)) != ESP_OK) continue;
+    rawFrames = rawFrames + 1;
+    if (!m.extd || m.rtr) {  // NMEA 2000 gebruikt alleen 29-bits id's
+      stdFrames = stdFrames + 1;
+      continue;
+    }
     uint32_t pgn = n2kPgnFromId(m.identifier);
     uint8_t src = m.identifier & 0xFF;
     if (quarantine_n2k_blocked(pgn, src)) continue;  // uitgeschakeld na crashes
@@ -89,8 +107,13 @@ void n2k_begin() {
 void n2k_set_enabled(bool on) {
 #if defined(CAN_TX_PIN)
   if (on == running) return;
-  if (on) running = start();
-  else {
+  if (on) {
+    rawFrames = stdFrames = 0;
+    lastRaw = lastStd = lastErr = 0;  // de tellers van de CAN-module beginnen ook opnieuw
+    running = start();
+    startMs = millis();
+    reported = false;
+  } else {
     running = false;
     vTaskDelay(pdMS_TO_TICKS(250));  // ontvangsttaak laten stoppen
     stop();
@@ -117,12 +140,43 @@ void n2k_tick() {
     if (now - lastStatMs >= 1000) {
       fps = (decoder.state.frames - lastFrames) * 1000 / max<uint32_t>(1, now - lastStatMs);
       lastFrames = decoder.state.frames;
+#if defined(CAN_TX_PIN)
+      uint32_t dt = max<uint32_t>(1, now - lastStatMs);
+      uint32_t raw = rawFrames, oth = stdFrames;
+      rawPerSec = (raw - lastRaw) * 1000 / dt;
+      stdPerSec = (oth - lastStd) * 1000 / dt;
+      lastRaw = raw;
+      lastStd = oth;
+      twai_status_info_t si;
+      if (running && twai_get_status_info(&si) == ESP_OK) {
+        busErrors = si.bus_error_count;
+        rxMissed = si.rx_missed_count + si.rx_overrun_count;
+        rxErrCounter = si.rx_error_counter;
+        busState = (uint8_t)si.state;
+        errPerSec = (busErrors - lastErr) * 1000 / dt;
+        lastErr = busErrors;
+      } else {
+        errPerSec = 0;
+      }
+      uint32_t ns = rxSamples, nl = rxLow;
+      rxSamples = 0;
+      rxLow = 0;
+      rxLowPct = ns ? (uint8_t)(nl * 100 / ns) : 0;
+#endif
       lastStatMs = now;
     }
     gpsEpoch = decoder.state.gpsEpoch;
     gpsTimeMs = decoder.state.gpsTimeMs;
     offsetMs = decoder.state.localOffsetMs;
     offsetMin = decoder.state.localOffsetMin;
+  }
+  // Eenmalig na 10 s: wat de CAN-module ziet, zodat een stille bus in het logboek te verklaren is
+  if (running && !reported && now - startMs > 10000) {
+    reported = true;
+    logf("[n2k] na 10 s: %lu berichten (%lu niet-NMEA 2000), busfouten %lu, RX-fouten %lu, gemist %lu, "
+         "RX-lijn %u%% laag, toestand %u\n",
+         (unsigned long)rawFrames, (unsigned long)stdFrames, (unsigned long)busErrors, (unsigned long)rxErrCounter,
+         (unsigned long)rxMissed, rxLowPct, busState);
   }
   if (!settings().gpsClock) return;  // "Klok via GPS" uit: niets van het netwerk overnemen
   // Lokale tijd van de plotter doorgeven; de klok beslist (keuze van de schipper) of hij gebruikt wordt
@@ -141,5 +195,26 @@ void n2k_tick() {
 
 N2kStats n2k_stats() {
   Lock l;
-  return {running, fps, decoder.state.sources, lastSync};
+  N2kStats st{};
+  st.running = running;
+  st.framesPerSec = fps;
+  st.sources = decoder.state.sources;
+  st.lastClockSync = lastSync;
+  st.rawPerSec = rawPerSec;
+  st.otherPerSec = stdPerSec;
+  st.errorsPerSec = errPerSec;
+  st.busErrors = busErrors;
+  st.rxErrors = rxErrCounter;
+  st.rxMissed = rxMissed;
+  st.rxLowPct = rxLowPct;
+  return st;
+}
+
+N2kDiag n2k_diag(const N2kStats &st) {
+  if (!st.running) return N2kDiag::Off;
+  if (st.framesPerSec) return N2kDiag::Ok;
+  if (st.rxLowPct >= 90) return N2kDiag::RxStuckLow;
+  if (st.errorsPerSec) return N2kDiag::Errors;
+  if (st.otherPerSec) return N2kDiag::NotN2k;
+  return N2kDiag::Silent;
 }
