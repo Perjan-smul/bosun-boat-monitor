@@ -11,8 +11,8 @@ constexpr uint8_t CH32_ADDR = 0x24;
 constexpr uint8_t CH32_REG_DIR = 0x02, CH32_REG_OUT = 0x03, CH32_REG_PWM = 0x05;
 constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_TP_INT = 1 << 2, CH32_LCD_RST = 1 << 3, CH32_SYS_EN = 1 << 5,
                   CH32_BEE_EN = 1 << 6;
-// Richting: 1 = uitgang. TP_INT is alleen tijdens de touch-reset een uitgang (kiest het GT911-adres),
-// daarna moet hij los: de GT911 stuurt hem zelf. Blijft hij laag gedreven, dan reageert de GT911 niet.
+// Richting: 1 = uitgang. TP_INT blijft een ingang: de GT911 stuurt hem zelf (en kiest bij de reset
+// zelf zijn adres, 0x5D of 0x14; gt911.h probeert beide). Laag gedreven reageert de GT911 niet.
 constexpr uint8_t CH32_DIR_RUN = CH32_TP_RST | CH32_LCD_RST | CH32_SYS_EN | CH32_BEE_EN;
 // De achtergrondverlichting van V4 is omgekeerd: PWM 0 = vol aan, 255 = uit. Boven 247 laat
 // Waveshare's schakeling hem flikkeren (zie de ESPHome-driver waveshare_io_ch32v003).
@@ -54,18 +54,16 @@ WsIo wsio_begin() {
   else type = WsIo::None;
 
   if (type == WsIo::Ch32) {
-    // Systeemvoeding blijft aan; scherm en touch in reset, TP_INT laag (GT911 kiest dan 0x5D), zoemer uit
+    // Zoals Waveshare's eigen BSP (esp32_s3_touch_lcd_4.c): TP_INT niet aansturen (ingang),
+    // scherm en touch 200 ms in reset, daarna 200 ms opstarttijd. Systeemvoeding blijft aan.
     writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);
+    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN);
     out = CH32_SYS_EN;
     writeOut();
-    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN | CH32_TP_INT);
-    delay(20);
-    // Resets los; TP_INT nog even laag houden, dan als ingang vrijgeven aan de GT911
+    delay(200);
     out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
     writeOut();
-    delay(10);
-    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN);
-    delay(100);  // GT911 en ST7701 opstarttijd
+    delay(200);
     log_line("[board] Waveshare V4 (CH32V003) gevonden");
   } else if (type == WsIo::Tca9554) {
     out = 0;

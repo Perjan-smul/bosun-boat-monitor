@@ -1,5 +1,6 @@
 #pragma once
 #include <Wire.h>
+#include <stdio.h>
 
 // Minimale GT911-driver: één aanraakpunt
 class GT911 {
@@ -20,10 +21,25 @@ class GT911 {
     return false;
   }
 
+  // Voor het logboek: adres, product-ID ("911"), configversie en resolutie uit de GT911.
+  // Geeft false als de chip niet antwoordt.
+  bool info(char *out, size_t len) {
+    uint8_t id[4] = {0}, cfg[5] = {0};
+    bool ok = readReg(0x8140, id, 4) && readReg(0x8047, cfg, 5);
+    snprintf(out, len, "adres 0x%02X, ID '%c%c%c%c', config v%u, %ux%u%s", addr_, id[0] ? id[0] : '-',
+             id[1] ? id[1] : '-', id[2] ? id[2] : '-', id[3] ? id[3] : '-', cfg[0], cfg[1] | (cfg[2] << 8),
+             cfg[3] | (cfg[4] << 8), ok ? "" : " (lezen mislukt)");
+    return ok;
+  }
+
+  uint32_t errors() const { return errors_; }  // mislukte leesacties sinds de start
+
   // Geeft true terug zolang het scherm aangeraakt wordt
   bool read(uint16_t &x, uint16_t &y) {
     uint8_t status;
-    if (readReg(0x814E, &status, 1) && (status & 0x80)) {
+    bool ok = readReg(0x814E, &status, 1);
+    if (!ok) errors_++;
+    if (ok && (status & 0x80)) {
       touched_ = (status & 0x0F) > 0;
       uint8_t p[4];
       if (touched_ && readReg(0x8150, p, 4)) {
@@ -57,6 +73,7 @@ class GT911 {
   }
 
   uint8_t addr_ = 0x5D;
+  uint32_t errors_ = 0;
   bool touched_ = false;
   uint16_t x_ = 0, y_ = 0;
 };
