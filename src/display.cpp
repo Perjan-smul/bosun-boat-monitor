@@ -180,6 +180,7 @@ void display_begin() {
     char info[96];
     touch.info(info, sizeof(info));
     logf("[touch] GT911 %s\n", info);
+    touch.diagnose(log_line);
   }
 
   lv_init();

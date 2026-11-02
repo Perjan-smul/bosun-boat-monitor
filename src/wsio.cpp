@@ -39,6 +39,15 @@ bool writeReg(uint8_t addr, uint8_t reg, uint8_t val) {
   return false;
 }
 
+bool readReg(uint8_t addr, uint8_t reg, uint8_t &val) {
+  Wire.beginTransmission(addr);
+  Wire.write(reg);
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;
+  val = Wire.read();
+  return true;
+}
+
 void writeOut() {
   if (type == WsIo::Ch32) writeReg(CH32_ADDR, CH32_REG_OUT, out);
   else if (type == WsIo::Tca9554) writeReg(TCA_ADDR, TCA_REG_OUT, out);
@@ -64,6 +73,14 @@ WsIo wsio_begin() {
     out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
     writeOut();
     delay(200);
+    {
+      // Diagnose: komen richting en uitgangen echt in de hulpchip aan? (ingangen: 0x04)
+      uint8_t dir = 0, o = 0, in = 0;
+      bool ok = readReg(CH32_ADDR, CH32_REG_DIR, dir) && readReg(CH32_ADDR, CH32_REG_OUT, o) &&
+                readReg(CH32_ADDR, 0x04, in);
+      logf("[board] CH32 richting 0x%02X, uitgangen 0x%02X, ingangen 0x%02X%s (verwacht 0xFF, 0x%02X)\n", dir, o,
+           in, ok ? "" : " (lezen mislukt)", out);
+    }
     log_line("[board] Waveshare V4 (CH32V003) gevonden");
   } else if (type == WsIo::Tca9554) {
     out = 0;

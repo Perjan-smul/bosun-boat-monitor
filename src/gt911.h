@@ -32,6 +32,31 @@ class GT911 {
     return ok;
   }
 
+  // Diagnose voor het logboek: registers byte voor byte (zoals Waveshare's driver SensorLib),
+  // en is de configuratie leeg, een software-reset van de GT911 (commando 0x02 in 0x8040).
+  void diagnose(void (*logfn)(const char *)) {
+    char line[120];
+    auto dump = [&](const char *title, uint16_t reg, int n) {
+      int len = snprintf(line, sizeof(line), "[touch] %s 0x%04X:", title, reg);
+      for (int i = 0; i < n && len < (int)sizeof(line) - 4; i++) {
+        uint8_t v = 0;
+        len += readReg(reg + i, &v, 1) ? snprintf(line + len, sizeof(line) - len, " %02X", v)
+                                       : snprintf(line + len, sizeof(line) - len, " --");
+      }
+      logfn(line);
+    };
+    dump("product", 0x8140, 10);  // ID, firmwareversie, resolutie, leverancier
+    dump("config", 0x8047, 8);    // versie, x-max, y-max, punten, schakelaars
+    uint8_t ver = 0;
+    if (readReg(0x8047, &ver, 1) && ver == 0) {
+      writeReg(0x8040, 0x02);  // software-reset
+      delay(100);
+      writeReg(0x8040, 0x00);
+      delay(100);
+      dump("na softreset config", 0x8047, 8);
+    }
+  }
+
   uint32_t errors() const { return errors_; }  // mislukte leesacties sinds de start
 
   // Geeft true terug zolang het scherm aangeraakt wordt. Zoals Waveshare's driver (SensorLib):
