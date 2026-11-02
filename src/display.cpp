@@ -160,7 +160,9 @@ void display_keep_awake(bool keep) {
 
 void display_begin() {
   boardInit();  // I2C-bus, hulpchip, resets van scherm en touch
-  if (!gfx->begin()) log_line("[display] gfx->begin() mislukt");
+  // Pixelklok 10 MHz (standaard 12): het beeld komt continu uit PSRAM; met wifi, Bluetooth en
+  // schrijven naar flash tegelijk gaf 12 MHz af en toe glitches. 10 MHz = ca. 35 beelden per seconde.
+  if (!gfx->begin(10000000)) log_line("[display] gfx->begin() mislukt");
   gfx->fillScreen(BLACK);
   setBacklight(0);  // fadet in via backlightTimer
 
