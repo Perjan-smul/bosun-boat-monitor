@@ -106,6 +106,21 @@ void touchCb(lv_indev_drv_t *, lv_indev_data_t *data) {
   static bool wasTouched = false;
   static uint8_t logged = 0;
   static uint32_t lastErrors = 0, lastErrLog = 0;
+  // Ruwe statusbyte van de GT911 (0x814E) als die verandert, de eerste 12 keer
+  static uint8_t lastStatus = 0, statusLogged = 0;
+  if (touch.lastStatus() != lastStatus && statusLogged < 12) {
+    statusLogged++;
+    lastStatus = touch.lastStatus();
+    logf("[touch] status 0x%02X\n", lastStatus);
+  }
+  // Na 3 s de configuratie nog eens uitlezen (laadt de GT911 hem later?)
+  static bool infoAgain = false;
+  if (!infoAgain && millis() > 3000) {
+    infoAgain = true;
+    char info[96];
+    touch.info(info, sizeof(info));
+    logf("[touch] na 3 s: GT911 %s\n", info);
+  }
   if (touched && !wasTouched && logged < 8) {
     logged++;
     logf("[touch] aangeraakt op %u,%u (ruw)\n", x, y);
@@ -149,6 +164,16 @@ void display_begin() {
   gfx->fillScreen(BLACK);
   setBacklight(0);  // fadet in via backlightTimer
 
+  {
+    // Diagnose: welke chips antwoorden er op de I2C-bus?
+    char found[96] = "";
+    size_t n = 0;
+    for (uint8_t a = 1; a < 127; a++) {
+      Wire.beginTransmission(a);
+      if (Wire.endTransmission() == 0 && n < sizeof(found) - 6) n += snprintf(found + n, sizeof(found) - n, " 0x%02X", a);
+    }
+    logf("[i2c] gevonden:%s\n", found);
+  }
   if (!touchInit()) {
     log_line("[display] touchcontroller niet gevonden");
   } else {

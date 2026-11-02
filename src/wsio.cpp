@@ -11,9 +11,7 @@ constexpr uint8_t CH32_ADDR = 0x24;
 constexpr uint8_t CH32_REG_DIR = 0x02, CH32_REG_OUT = 0x03, CH32_REG_PWM = 0x05;
 constexpr uint8_t CH32_TP_RST = 1 << 1, CH32_TP_INT = 1 << 2, CH32_LCD_RST = 1 << 3, CH32_SYS_EN = 1 << 5,
                   CH32_BEE_EN = 1 << 6;
-// Richting: 1 = uitgang. TP_INT blijft een ingang: de GT911 stuurt hem zelf (en kiest bij de reset
-// zelf zijn adres, 0x5D of 0x14; gt911.h probeert beide). Laag gedreven reageert de GT911 niet.
-constexpr uint8_t CH32_DIR_RUN = CH32_TP_RST | CH32_LCD_RST | CH32_SYS_EN | CH32_BEE_EN;
+// Richting: 1 = uitgang. Waveshare zet alle pinnen op uitgang (0xFF), ook TP_INT.
 // De achtergrondverlichting van V4 is omgekeerd: PWM 0 = vol aan, 255 = uit. Boven 247 laat
 // Waveshare's schakeling hem flikkeren (zie de ESPHome-driver waveshare_io_ch32v003).
 constexpr uint8_t CH32_PWM_OFF = 247;
@@ -54,13 +52,15 @@ WsIo wsio_begin() {
   else type = WsIo::None;
 
   if (type == WsIo::Ch32) {
-    // Zoals Waveshare's eigen BSP (esp32_s3_touch_lcd_4.c): TP_INT niet aansturen (ingang),
-    // scherm en touch 200 ms in reset, daarna 200 ms opstarttijd. Systeemvoeding blijft aan.
-    writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);
-    writeReg(CH32_ADDR, CH32_REG_DIR, CH32_DIR_RUN);
-    out = CH32_SYS_EN;
+    // Precies zoals Waveshare's eigen Arduino-voorbeelden voor dit bord (WS_CH32_IO.cpp,
+    // initDisplayPower): alle pinnen uitgang en laag (ook SYS_EN en TP_INT), 200 ms,
+    // dan voeding en resets hoog; TP_INT blijft laag (GT911 op 0x5D), 200 ms opstarttijd.
+    writeReg(CH32_ADDR, CH32_REG_PWM, CH32_PWM_OFF);  // backlight uit tot het scherm draait
+    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+    out = 0;
     writeOut();
     delay(200);
+    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
     out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
     writeOut();
     delay(200);
