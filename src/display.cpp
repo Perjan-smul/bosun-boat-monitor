@@ -102,6 +102,20 @@ void touchCb(lv_indev_drv_t *, lv_indev_data_t *data) {
     data->state = LV_INDEV_STATE_REL;
     return;
   }
+  // Diagnose: de eerste aanrakingen en leesfouten in het logboek
+  static bool wasTouched = false;
+  static uint8_t logged = 0;
+  static uint32_t lastErrors = 0, lastErrLog = 0;
+  if (touched && !wasTouched && logged < 8) {
+    logged++;
+    logf("[touch] aangeraakt op %u,%u (ruw)\n", x, y);
+  }
+  wasTouched = touched;
+  if (touch.errors() != lastErrors && millis() - lastErrLog > 10000) {
+    logf("[touch] %lu leesfouten\n", (unsigned long)touch.errors());
+    lastErrors = touch.errors();
+    lastErrLog = millis();
+  }
   if (touched) {
     if (TOUCH_SWAP_XY) std::swap(x, y);
     if (TOUCH_INVERT_X) x = LCD_WIDTH - 1 - x;
@@ -135,7 +149,13 @@ void display_begin() {
   gfx->fillScreen(BLACK);
   setBacklight(0);  // fadet in via backlightTimer
 
-  if (!touchInit()) log_line("[display] touchcontroller niet gevonden");
+  if (!touchInit()) {
+    log_line("[display] touchcontroller niet gevonden");
+  } else {
+    char info[96];
+    touch.info(info, sizeof(info));
+    logf("[touch] GT911 %s\n", info);
+  }
 
   lv_init();
 
