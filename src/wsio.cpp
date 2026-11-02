@@ -108,6 +108,25 @@ WsIo wsio_begin() {
 
 WsIo wsio_type() { return type; }
 
+void wsio_reset_panel(uint16_t low_ms) {
+  if (type == WsIo::Ch32) {
+    writeReg(CH32_ADDR, CH32_REG_DIR, 0xFF);
+    out = 0;
+    writeOut();
+    delay(low_ms);
+    out = CH32_SYS_EN | CH32_LCD_RST | CH32_TP_RST;
+    writeOut();
+    delay(200);
+  } else if (type == WsIo::Tca9554) {
+    out &= ~(TCA_TP_RST | TCA_LCD_RST);
+    writeOut();
+    delay(low_ms);
+    out |= TCA_TP_RST | TCA_LCD_RST;
+    writeOut();
+    delay(200);
+  }
+}
+
 void wsio_backlight(uint8_t level) {
   if (type == WsIo::Ch32) {
     // level 0 = uit .. 255 = vol aan; omzetten naar de omgekeerde PWM van V4

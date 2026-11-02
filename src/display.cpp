@@ -160,11 +160,6 @@ void display_keep_awake(bool keep) {
 
 void display_begin() {
   boardInit();  // I2C-bus, hulpchip, resets van scherm en touch
-  // Pixelklok 10 MHz (standaard 12): het beeld komt continu uit PSRAM; met wifi, Bluetooth en
-  // schrijven naar flash tegelijk gaf 12 MHz af en toe glitches. 10 MHz = ca. 35 beelden per seconde.
-  if (!gfx->begin(10000000)) log_line("[display] gfx->begin() mislukt");
-  gfx->fillScreen(BLACK);
-  setBacklight(0);  // fadet in via backlightTimer
 
   {
     // Diagnose: welke chips antwoorden er op de I2C-bus?
@@ -176,14 +171,27 @@ void display_begin() {
     }
     logf("[i2c] gevonden:%s\n", found);
   }
-  if (!touchInit()) {
+  // Touch vóór het scherm: hangt de GT911 nog van een eerdere start (lege configuratie, meldt geen
+  // aanrakingen), dan scherm en touch nog eens langer resetten. Dat kan alleen voordat het scherm draait.
+  bool touchOk = touchInit();
+  for (int attempt = 1; touchOk && !touch.configOk() && attempt <= 2; attempt++) {
+    logf("[touch] GT911 op 0x%02X zonder geldige configuratie: opnieuw resetten (%d)\n", touch.address(), attempt);
+    wsio_reset_panel(attempt * 1000);
+    touchOk = touchInit();
+  }
+  if (!touchOk) {
     log_line("[display] touchcontroller niet gevonden");
   } else {
     char info[96];
     touch.info(info, sizeof(info));
     logf("[touch] GT911 %s\n", info);
-    touch.diagnose(log_line);
   }
+
+  // Pixelklok 10 MHz (standaard 12): het beeld komt continu uit PSRAM; met wifi, Bluetooth en
+  // schrijven naar flash tegelijk gaf 12 MHz af en toe glitches. 10 MHz = ca. 35 beelden per seconde.
+  if (!gfx->begin(10000000)) log_line("[display] gfx->begin() mislukt");
+  gfx->fillScreen(BLACK);
+  setBacklight(0);  // fadet in via backlightTimer
 
   lv_init();
 
