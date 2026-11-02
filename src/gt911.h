@@ -57,6 +57,15 @@ class GT911 {
     }
   }
 
+  // Geldige configuratie geladen? (versie en resolutie niet 0). Hangt de GT911 na een eerdere
+  // start, dan staat hij op 0x14 met een lege configuratie en meldt hij geen aanrakingen.
+  bool configOk() {
+    uint8_t cfg[5] = {0};
+    return readReg(0x8047, cfg, 5) && cfg[0] != 0 && (cfg[1] | (cfg[2] << 8)) != 0 && (cfg[3] | (cfg[4] << 8)) != 0;
+  }
+
+  uint8_t address() const { return addr_; }
+
   uint32_t errors() const { return errors_; }  // mislukte leesacties sinds de start
 
   // Geeft true terug zolang het scherm aangeraakt wordt. Zoals Waveshare's driver (SensorLib):
